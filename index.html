@@ -2334,15 +2334,15 @@ function exportUserReport(){
 // don't have to wait/reconnect every time)
 // =============================================
 function parseCSV(csv){
-  const lines=csv.split("\n").filter(l=>l.trim());
-  const rows=[];
+  const lines = csv.split("\n").filter(l => l.trim());
+  const rows = [];
   for(let i=0;i<lines.length;i++){
-    const line=lines[i];const cells=[];let cell='';let quoted=false;
+    const line=lines[i]; const cells=[]; let cell=''; let quoted=false;
     for(let j=0;j<line.length;j++){
-      const c=line[j];const next=line[j+1];
-      if(c==='"'){if(quoted&&next==='"'){cell+='"';j++;}else{quoted=!quoted;}}
-      else if(c===','&&!quoted){cells.push(cell.trim());cell='';}
-      else{cell+=c;}
+      const c=line[j]; const next=line[j+1];
+      if(c==='"'){ if(quoted && next==='"'){ cell+='"'; j++; } else { quoted=!quoted; } }
+      else if(c===',' && !quoted){ cells.push(cell.trim()); cell=''; }
+      else{ cell+=c; }
     }
     cells.push(cell.trim());
     rows.push(cells);
@@ -2351,109 +2351,247 @@ function parseCSV(csv){
 }
 
 async function fetchSheetCSV(){
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
-  const controller=new AbortController();
-  const timeoutId=setTimeout(()=>controller.abort(),30000);
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
   try{
-    const res=await fetch(url,{method:'GET',cache:'no-cache',mode:'cors',signal:controller.signal});
+    const res = await fetch(url, { method:'GET', cache:'no-cache', mode:'cors', signal: controller.signal });
     clearTimeout(timeoutId);
     if(!res.ok) throw new Error("Connection failed");
     return await res.text();
-  }finally{
+  } finally {
     clearTimeout(timeoutId);
   }
 }
 
-// Loads data from the network and updates cache + UI
-async function fetchAndApplyFreshData(isBackground){
-  const badge=document.getElementById("statusBadge");
-  const info=document.getElementById("statusInfo");
+async function loadData(isBackground){
+  const badge = document.getElementById("statusBadge");
+  const info = document.getElementById("statusInfo");
   try{
     if(!isBackground){
-      badge.className="badge loading";
-      badge.innerHTML='<span class="spinner"></span><span>Connecting</span>';
-      info.textContent="Connecting to Google Sheets...";
+      badge.className = "badge loading";
+      badge.innerHTML = '<span class="spinner"></span><span>Connecting</span>';
+      info.textContent = "Connecting to Google Sheets…";
     }
-    const start=performance.now();
-    const csv=await fetchSheetCSV();
-    if(!isBackground){
-      badge.innerHTML='<span class="spinner"></span><span>Processing</span>';
-      info.textContent="Processing data...";
-      await new Promise(r=>setTimeout(r,10));
-    }
-    const rows=parseCSV(csv);
-    const time=Math.round(performance.now()-start);
-    sheetData=rows;
-    ready=true;
-    await setCachedSheetData(rows);
-    const count=sheetData.length-1;
-    badge.className="badge success";
-    badge.innerHTML='<span>✓</span><span>Connected</span>';
-    info.innerHTML=`<strong>${count.toLocaleString()}</strong> records ${isBackground?'synced':'loaded'} in <strong>${time}ms</strong>`;
-    setTimeout(()=>{badge.innerHTML=`<span>✓</span><span>${count.toLocaleString()} Records</span>`;},2000);
-    if(isBackground){
-      logActivity('🔄',`Background sync: <strong>${count.toLocaleString()}</strong> records refreshed`);
-    }else{
-      logActivity('📊',`Database loaded: <strong>${count.toLocaleString()}</strong> records by <strong>${currentUser}</strong>`);
-    }
-    return true;
+    const start = performance.now();
+    const csv = await fetchSheetCSV();
+    const rows = parseCSV(csv);
+    const time = Math.round(performance.now() - start);
+    sheetData = rows;
+    ready = true;
+    const count = sheetData.length - 1;
+    badge.className = "badge success";
+    badge.innerHTML = '<span>✓</span><span>Connected</span>';
+    info.innerHTML = `<strong>${count.toLocaleString()}</strong> records loaded in <strong>${time}ms</strong>`;
+    setTimeout(() => { badge.innerHTML = `<span>✓</span><span>${count.toLocaleString()} Records</span>`; }, 2000);
   }catch(err){
-    if(isBackground){
-      // Silent failure in background — keep using cached/current data
-      console.warn('Background sync failed, keeping cached data', err);
-      return false;
-    }
-    badge.className="badge error";
-    if(err.name==='AbortError'){
-      badge.innerHTML='<span>⚠</span><span>Timeout</span>';
-      info.textContent="Connection timed out after 30 seconds.";
-      alert('❌ Connection Timeout\n\nPlease check:\n1. Internet connection\n2. Google Sheets link is accessible\n3. Try again in a few moments');
+    ready = false;
+    badge.className = "badge error";
+    if(err.name === 'AbortError'){
+      badge.innerHTML = '<span>⚠</span><span>Timeout</span>';
+      info.textContent = "Connection timed out after 30 seconds.";
     }else{
-      badge.innerHTML='<span>⚠</span><span>Failed</span>';
-      info.textContent="Connection failed. Please refresh.";
-      alert('❌ Failed to connect to database\n\nPlease check:\n1. Google Sheet is shared (Anyone with link can view)\n2. Internet connection\n3. Sheet ID is correct');
+      badge.innerHTML = '<span>⚠</span><span>Failed</span>';
+      info.textContent = "Connection failed. Check sheet sharing (Anyone with link – Viewer) and press Refresh.";
     }
-    return false;
+    console.error(err);
   }
 }
 
-let backgroundSyncTimer=null;
-function startBackgroundSync(){
-  if(backgroundSyncTimer) clearInterval(backgroundSyncTimer);
-  backgroundSyncTimer=setInterval(()=>{fetchAndApplyFreshData(true);},BACKGROUND_SYNC_INTERVAL);
+async function forceRefresh(){
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true; btn.textContent = '🔄 Refreshing…';
+  await loadData(false);
+  btn.disabled = false; btn.textContent = '🔄 Refresh';
 }
 
-async function loadData(){
-  const badge=document.getElementById("statusBadge");
-  const info=document.getElementById("statusInfo");
-  const cached=await getCachedSheetData();
-  if(cached && cached.data && cached.data.length){
-    // Instant load from cache — no waiting, no reconnecting
-    sheetData=cached.data;
-    ready=true;
-    const count=sheetData.length-1;
-    const ageMins=Math.round((Date.now()-cached.savedAt)/60000);
-    badge.className="badge success";
-    badge.innerHTML='<span>✓</span><span>Connected</span>';
-    info.innerHTML=`<strong>${count.toLocaleString()}</strong> records loaded instantly from cache (${ageMins<1?'just now':ageMins+' min ago'})`;
-    setTimeout(()=>{badge.innerHTML=`<span>✓</span><span>${count.toLocaleString()} Records</span>`;},2000);
-    logActivity('⚡',`Database loaded from cache: <strong>${count.toLocaleString()}</strong> records by <strong>${currentUser}</strong>`);
-    // Quietly check for updates in the background, without blocking the UI
-    fetchAndApplyFreshData(true);
-  }else{
-    // First time ever (or cache cleared) — fetch fresh from the sheet
-    await fetchAndApplyFreshData(false);
+  let allRows = [];      // raw parsed rows
+  let loaded = false;
+
+  const statusPill = document.getElementById('statusPill');
+  const statusText = document.getElementById('statusText');
+  const resultsArea = document.getElementById('resultsArea');
+  const resultsCount = document.getElementById('resultsCount');
+  const queryInput = document.getElementById('query');
+  const searchBtn = document.getElementById('searchBtn');
+
+  const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+
+  function parseSheetDate(str){
+    // expects "YYYY-Mon-DD" e.g. 2026-Sep-05
+    if(!str) return null;
+    const parts = String(str).split('-');
+    if(parts.length !== 3) return new Date(str);
+    const [y, mon, d] = parts;
+    const m = MONTHS[mon];
+    if(m === undefined) return new Date(str);
+    return new Date(parseInt(y), m, parseInt(d));
   }
-  startBackgroundSync();
-}
 
-// Manual "Refresh" button — forces a fresh pull from Google Sheets
-async function forceRefreshData(){
-  const btn=document.getElementById('refreshDataBtn');
-  if(btn){btn.disabled=true;btn.textContent='🔄 Refreshing...';}
-  await fetchAndApplyFreshData(false);
-  if(btn){btn.disabled=false;btn.textContent='🔄 Refresh';}
-}
+  function formatDateDisplay(str){
+    const d = parseSheetDate(str);
+    if(!d || isNaN(d)) return str || '—';
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function normalize(s){
+    return String(s || '').toLowerCase().replace(/[\s]/g, '');
+  }
+
+  function loadSheet(){
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results){
+        allRows = results.data.filter(r => r.sanction_no);
+        loaded = true;
+        statusPill.classList.add('ok');
+        statusText.textContent = `شیٹ لوڈ ہو گئی — ${allRows.length.toLocaleString()} اندراجات`;
+      },
+      error: function(err){
+        statusPill.classList.add('err');
+        statusText.textContent = 'شیٹ لوڈ نہیں ہو سکی — رسائی چیک کریں';
+        resultsArea.innerHTML = `<div class="empty-state ur">
+          شیٹ لوڈ کرنے میں مسئلہ ہوا۔ براہِ کرم یقینی بنائیں کہ Google Sheet کی شیئرنگ سیٹنگ
+          "Anyone with the link – Viewer" پر سیٹ ہے، پھر صفحہ ری لوڈ کریں۔</div>`;
+        console.error(err);
+      }
+    });
+  }
+
+  function doSearch(){
+    const raw = queryInput.value.trim();
+    if(!raw){
+      resultsArea.innerHTML = `<div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>`;
+      resultsCount.textContent = '';
+      return;
+    }
+    if(!loaded){
+      resultsArea.innerHTML = `<div class="loading-state"><div class="spinner"></div>شیٹ ابھی لوڈ ہو رہی ہے، براہِ کرم انتظار کریں…</div>`;
+      setTimeout(doSearch, 500);
+      return;
+    }
+
+    const q = normalize(raw);
+    const matches = allRows.filter(r =>
+      normalize(r.member_cnic).includes(q) || normalize(r.sanction_no).includes(q)
+    );
+
+    // group by sanction_no, keep one representative row per sanction
+    const groups = new Map();
+    for(const r of matches){
+      if(!groups.has(r.sanction_no)){
+        groups.set(r.sanction_no, { rep: r, records: [] });
+      }
+      groups.get(r.sanction_no).records.push(r);
+    }
+
+    renderResults(groups);
+  }
+
+  function renderResults(groups){
+    const entries = Array.from(groups.entries());
+    resultsCount.textContent = `${entries.length} unique sanction${entries.length===1?'':'s'} · ${Array.from(groups.values()).reduce((a,g)=>a+g.records.length,0)} total entries`;
+
+    if(entries.length === 0){
+      resultsArea.innerHTML = `<div class="empty-state ur">اس CNIC یا Sanction Number کے خلاف کوئی ریکارڈ نہیں ملا۔</div>`;
+      return;
+    }
+
+    let html = `<table class="results">
+      <thead>
+        <tr>
+          <th class="mono">Sanction No</th>
+          <th>Member Name</th>
+          <th class="mono">CNIC</th>
+          <th>Project</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    entries.forEach(([sanctionNo, group], idx) => {
+      const r = group.rep;
+      const statusClass = (r.Status || '').toLowerCase().includes('collect') ? 'collected' : 'other';
+      html += `
+        <tr>
+          <td class="mono" data-label="Sanction No">${escapeHtml(sanctionNo)}</td>
+          <td class="member-name" data-label="Member Name">${escapeHtml(r.member_name)}</td>
+          <td class="mono" data-label="CNIC">${escapeHtml(r.member_cnic)}</td>
+          <td data-label="Project">${escapeHtml(shortProject(r.Project))}</td>
+          <td data-label="Status"><span class="status-tag ${statusClass}">${escapeHtml(r.Status || '—')}</span></td>
+          <td class="view-cell" data-label=""><button class="view-btn" data-idx="${idx}">ریکارڈ دیکھیں</button></td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    resultsArea.innerHTML = html;
+
+    // wire up view buttons
+    resultsArea.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const [sanctionNo, group] = entries[parseInt(btn.dataset.idx)];
+        openModal(sanctionNo, group);
+      });
+    });
+  }
+
+  function shortProject(p){
+    if(!p) return '—';
+    const m = p.match(/\(([^)]+)\)/);
+    return m ? m[1] : p;
+  }
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ===== Modal (shows the hidden receive_date / amount columns) =====
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalSub = document.getElementById('modalSub');
+  const ledgerBody = document.getElementById('ledgerBody');
+  const ledgerTotal = document.getElementById('ledgerTotal');
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', e => { if(e.target === modalBackdrop) closeModal(); });
+
+  function openModal(sanctionNo, group){
+    const rep = group.rep;
+    modalTitle.textContent = `${rep.member_name} — وصولی کی تفصیل`;
+    modalSub.textContent = `Sanction: ${sanctionNo}  ·  CNIC: ${rep.member_cnic}`;
+
+    const sorted = [...group.records].sort((a,b) => parseSheetDate(b.receive_date) - parseSheetDate(a.receive_date));
+    let total = 0;
+    ledgerBody.innerHTML = sorted.map(r => {
+      const amt = parseFloat(r.amount) || 0;
+      total += amt;
+      const statusClass = (r.Status || '').toLowerCase().includes('collect') ? 'collected' : 'other';
+      return `<tr>
+        <td class="mono">${formatDateDisplay(r.receive_date)}</td>
+        <td class="mono">${amt.toLocaleString()}</td>
+        <td><span class="status-tag ${statusClass}">${escapeHtml(r.Status || '—')}</span></td>
+      </tr>`;
+    }).join('');
+    ledgerTotal.textContent = total.toLocaleString();
+
+    modalBackdrop.classList.add('open');
+  }
+
+  function closeModal(){
+    modalBackdrop.classList.remove('open');
+  }
+
+  // ===== Events =====
+  searchBtn.addEventListener('click', doSearch);
+  queryInput.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+  loadSheet();
+</script>
+
+</body>
 
 // =============================================
 // SEARCH
