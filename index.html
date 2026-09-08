@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="ur" dir="rtl">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recovery Record Lookup</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
   :root{
     --paper:#F6F3EC;
     --paper-2:#EFEAE0;
@@ -337,91 +341,11 @@
 
 <script>
   // ===== CONFIGURATION =====
-  // =============================================
-// CONFIG
-// =============================================
-const SHEET_ID = "1v9Y7EulDlF4xlsp_1WVsIsNeVWNrOEti";
-const SHEET_NAME = "Sheet1";
-const COLUMNS = ['Sr No','CNIC','Name','Contact','Branch Name','Branch Code','Batch'];
-
-let sheetData = [];
-let ready = false;
-let currentResults = [];
-
-// =============================================
-// CSV PARSE
-// =============================================
-function parseCSV(csv){
-  const lines = csv.split("\n").filter(l => l.trim());
-  const rows = [];
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i]; const cells=[]; let cell=''; let quoted=false;
-    for(let j=0;j<line.length;j++){
-      const c=line[j]; const next=line[j+1];
-      if(c==='"'){ if(quoted && next==='"'){ cell+='"'; j++; } else { quoted=!quoted; } }
-      else if(c===',' && !quoted){ cells.push(cell.trim()); cell=''; }
-      else{ cell+=c; }
-    }
-    cells.push(cell.trim());
-    rows.push(cells);
-  }
-  return rows;
-}
-
-async function fetchSheetCSV(){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
-  try{
-    const res = await fetch(url, { method:'GET', cache:'no-cache', mode:'cors', signal: controller.signal });
-    clearTimeout(timeoutId);
-    if(!res.ok) throw new Error("Connection failed");
-    return await res.text();
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-async function loadData(isBackground){
-  const badge = document.getElementById("statusBadge");
-  const info = document.getElementById("statusInfo");
-  try{
-    if(!isBackground){
-      badge.className = "badge loading";
-      badge.innerHTML = '<span class="spinner"></span><span>Connecting</span>';
-      info.textContent = "Connecting to Google Sheets…";
-    }
-    const start = performance.now();
-    const csv = await fetchSheetCSV();
-    const rows = parseCSV(csv);
-    const time = Math.round(performance.now() - start);
-    sheetData = rows;
-    ready = true;
-    const count = sheetData.length - 1;
-    badge.className = "badge success";
-    badge.innerHTML = '<span>✓</span><span>Connected</span>';
-    info.innerHTML = `<strong>${count.toLocaleString()}</strong> records loaded in <strong>${time}ms</strong>`;
-    setTimeout(() => { badge.innerHTML = `<span>✓</span><span>${count.toLocaleString()} Records</span>`; }, 2000);
-  }catch(err){
-    ready = false;
-    badge.className = "badge error";
-    if(err.name === 'AbortError'){
-      badge.innerHTML = '<span>⚠</span><span>Timeout</span>';
-      info.textContent = "Connection timed out after 30 seconds.";
-    }else{
-      badge.innerHTML = '<span>⚠</span><span>Failed</span>';
-      info.textContent = "Connection failed. Check sheet sharing (Anyone with link – Viewer) and press Refresh.";
-    }
-    console.error(err);
-  }
-}
-
-async function forceRefresh(){
-  const btn = document.getElementById('refreshBtn');
-  btn.disabled = true; btn.textContent = '🔄 Refreshing…';
-  await loadData(false);
-  btn.disabled = false; btn.textContent = '🔄 Refresh';
-}
+  // Google Sheet ID for the Recovery sheet (sanction_no, member_name, member_cnic, receive_date, amount, Project, Status)
+  const SHEET_ID = "1TuWd8eUVmcX4PJdgNX6KEUXHOZGmSml3";
+  // gid = 0 targets the first sheet/tab. Change if your data lives on another tab.
+  const SHEET_GID = "0";
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 
   let allRows = [];      // raw parsed rows
   let loaded = false;
