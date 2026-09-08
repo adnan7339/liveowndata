@@ -1,1653 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ur" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apni Chhat Mehfooz Chhat Member Search - Admin Edition</title>
-<link rel="icon" type="image/x-icon" href="https:">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Export Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
-:root{
-  --navy:#0a84ff;
-  --navy-dark:#0060df;
-  --navy-light:#5ac8fa;
-  --gold:#bf5af2;
-  --gold-dark:#a742e0;
-  --gold-light:#da9cf7;
-  --success:#30d158;
-  --error:#ff453a;
-  --warning:#ff9f0a;
-  --bg-light:#f4fbff;
-  --text-dark:#101828;
-  --text-light:#5c8aa3;
-  --border:#d3ecf7;
-  --admin:#bf5af2;
-  --admin-light:#da9cf7;
-  --danger:#ff453a;
-  --crystal-glass:rgba(255,255,255,0.45);
-  --crystal-glass-strong:rgba(255,255,255,0.68);
-  --crystal-border:rgba(255,255,255,0.55);
-  --crystal-shine:rgba(255,255,255,0.95);
-}
-
-body{
-  font-family:'Inter',sans-serif;
-  background:
-    radial-gradient(circle at 15% 15%,#3b82f6 0%,transparent 40%),
-    radial-gradient(circle at 85% 20%,#a855f7 0%,transparent 42%),
-    radial-gradient(circle at 20% 85%,#ec4899 0%,transparent 42%),
-    radial-gradient(circle at 85% 85%,#06b6d4 0%,transparent 45%),
-    linear-gradient(135deg,#0b1030 0%,#150a35 45%,#1a0b2e 100%);
-  background-attachment:fixed;
-  color:var(--text-dark);
-  min-height:100vh;
-  padding:20px;
-  opacity:0;
-  animation:fadeIn 0.5s ease forwards;
-  position:relative;
-}
-
-@keyframes fadeIn{to{opacity:1;}}
-
-body::before{
-  content:'';
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:
-    radial-gradient(circle at 30% 30%,rgba(255,255,255,0.12) 0%,transparent 35%),
-    radial-gradient(circle at 75% 65%,rgba(255,255,255,0.08) 0%,transparent 40%),
-    radial-gradient(circle at 50% 90%,rgba(255,255,255,0.06) 0%,transparent 45%);
-  pointer-events:none;
-  z-index:0;
-  animation:bgMove 20s ease-in-out infinite;
-}
-
-@keyframes bgMove{
-  0%,100%{transform:translate(0,0);}
-  50%{transform:translate(20px,-20px);}
-}
-
-/* ===== LOGIN ===== */
-.login-container{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  position:relative;
-  z-index:1;
-}
-.login-container.hidden{display:none;}
-
-.login-box{
-  background:white;
-  border-radius:24px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.3),0 0 100px rgba(197,157,95,0.2);
-  width:100%;
-  max-width:420px;
-  overflow:hidden;
-  animation:slideUp 0.6s ease;
-}
-
-@keyframes slideUp{
-  from{opacity:0;transform:translateY(40px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-.login-header{
-  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);
-  padding:40px 30px;
-  text-align:center;
-  position:relative;
-  overflow:hidden;
-}
-.login-header::before{
-  content:'';
-  position:absolute;
-  top:-50%;right:-50%;
-  width:200%;height:200%;
-  background:radial-gradient(circle,rgba(197,157,95,0.15) 0%,transparent 70%);
-  animation:rotate 15s linear infinite;
-}
-@keyframes rotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-
-.login-logo{
-  width:80px;height:80px;
-  margin:0 auto 20px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-light));
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:2.5rem;color:white;
-  position:relative;z-index:1;
-  box-shadow:0 10px 40px rgba(197,157,95,0.4);
-  animation:float 3s ease-in-out infinite;
-}
-@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
-
-.login-title{color:white;font-size:1.8rem;font-weight:800;margin-bottom:8px;position:relative;z-index:1;}
-.login-subtitle{color:var(--gold-light);font-size:1rem;position:relative;z-index:1;}
-.login-body{padding:35px 30px;}
-
-.form-group{margin-bottom:25px;}
-.form-label{display:block;color:var(--navy);font-weight:700;margin-bottom:10px;font-size:0.95rem;}
-
-.input-wrapper{position:relative;}
-.input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:1.2rem;}
-.form-input{
-  width:100%;padding:15px 50px;
-  border:2px solid var(--border);border-radius:12px;
-  font-size:1rem;transition:all 0.3s;
-  background:var(--bg-light);font-family:inherit;
-}
-.form-input:focus{outline:none;border-color:var(--navy);background:white;box-shadow:0 0 0 4px rgba(0,61,130,0.1);}
-
-.password-toggle{
-  position:absolute;right:16px;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;
-  color:var(--text-light);font-size:1.1rem;padding:5px;transition:color 0.3s;
-}
-.password-toggle:hover{color:var(--navy);}
-
-.remember-me{display:flex;align-items:center;gap:8px;margin-bottom:25px;}
-.remember-me input[type="checkbox"]{width:18px;height:18px;cursor:pointer;}
-.remember-me label{color:var(--text-dark);font-size:0.95rem;cursor:pointer;}
-
-.alert{padding:15px;border-radius:12px;margin-bottom:20px;display:none;animation:slideDown 0.3s ease;}
-@keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
-.alert.show{display:block;}
-.alert-error{background:#fee2e2;color:var(--error);border:1px solid #fecaca;}
-
-.btn-login{
-  width:100%;padding:16px;
-  background:linear-gradient(135deg,var(--navy),var(--navy-light));
-  color:white;border:none;border-radius:12px;
-  font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.3s;
-  font-family:inherit;box-shadow:0 4px 20px rgba(0,61,130,0.4);
-}
-.btn-login:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 30px rgba(0,61,130,0.5);}
-.btn-login:disabled{opacity:0.6;cursor:not-allowed;}
-
-/* ===== MAIN APP ===== */
-.container{max-width:1200px;margin:0 auto;position:relative;z-index:1;display:none;}
-.container.active{display:block;}
-
-.user-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;animation:slideDown 0.6s ease;gap:15px;flex-wrap:wrap;}
-.user-info{
-  display:flex;align-items:center;gap:15px;
-  background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);
-  padding:12px 20px;border-radius:100px;border:1px solid rgba(255,255,255,0.2);
-}
-.user-avatar{
-  width:45px;height:45px;
-  background:linear-gradient(135deg,var(--navy),var(--navy-light));
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  color:white;font-weight:800;font-size:1.2rem;
-}
-.user-avatar.admin-avatar{background:linear-gradient(135deg,var(--admin),var(--admin-light));}
-.user-details h3{color:#ffffff;font-size:1rem;font-weight:700;}
-.user-details p{color:rgba(255,255,255,0.7);font-size:0.85rem;}
-
-.header-actions{display:flex;gap:10px;align-items:center;}
-
-.btn-admin-panel{
-  padding:12px 24px;
-  background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(139,92,246,0.3));
-  color:#c4b5fd;border:1px solid rgba(124,58,237,0.4);
-  border-radius:100px;font-size:0.9rem;font-weight:700;
-  cursor:pointer;transition:all 0.3s;font-family:inherit;
-}
-.btn-admin-panel:hover{background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(139,92,246,0.5));transform:translateY(-2px);}
-
-.btn-logout{
-  padding:12px 24px;background:rgba(239,68,68,0.15);
-  color:#ff6b6b;border:1px solid rgba(239,68,68,0.3);
-  border-radius:100px;font-size:0.9rem;font-weight:700;
-  cursor:pointer;transition:all 0.3s;font-family:inherit;
-}
-.btn-logout:hover{background:rgba(239,68,68,0.25);transform:translateY(-2px);}
-
-/* Header */
-.header{text-align:center;margin-bottom:40px;animation:slideUp 0.6s ease;}
-.logo{
-  width:90px;height:90px;margin:0 auto 20px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-light));
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:2.5rem;color:white;
-  box-shadow:0 10px 30px rgba(197,157,95,0.4),0 0 60px rgba(197,157,95,0.2);
-  animation:float 3s ease-in-out infinite;position:relative;
-}
-.logo::before{
-  content:'';position:absolute;inset:-4px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-light));
-  border-radius:50%;filter:blur(15px);opacity:0.5;z-index:-1;
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:0.5;transform:scale(1);}50%{opacity:0.8;transform:scale(1.1);}}
-
-h1{color:#ffffff;font-size:2.8rem;font-weight:800;margin-bottom:10px;text-shadow:0 4px 24px rgba(10,132,255,0.5);}
-.subtitle{color:rgba(255,255,255,0.75);font-size:1.2rem;font-weight:500;}
-
-/* Card */
-.card{
-  background:white;border-radius:20px;padding:35px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.2),0 0 100px rgba(197,157,95,0.1);
-  margin-bottom:25px;border:1px solid rgba(197,157,95,0.15);
-  position:relative;animation:slideUp 0.6s ease backwards;
-}
-
-/* ===== REGISTRATION LINKS (ACAG Portal) ===== */
-.bottomLinks{
-  display:flex;flex-wrap:wrap;align-items:stretch;
-  gap:20px;margin-bottom:25px;
-  animation:slideUp 0.6s ease backwards;
-}
-.module-wrapper{
-  display:flex;flex-wrap:wrap;gap:20px;flex:1 1 480px;
-}
-.module-card{
-  flex:1 1 260px;display:flex;align-items:center;justify-content:space-between;
-  gap:16px;padding:22px 26px;border-radius:20px;text-decoration:none;color:#fff;
-  box-shadow:0 10px 30px rgba(0,0,0,0.25);
-  transition:transform 0.25s ease,box-shadow 0.25s ease;
-}
-.module-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.35);}
-.module-card.blue{background:linear-gradient(135deg,var(--navy),var(--navy-dark));}
-.module-card.green{background:linear-gradient(135deg,var(--success),#1f9c46);}
-.module-title{font-weight:700;font-size:1.05rem;line-height:1.45;}
-.module-title span{display:block;font-weight:500;font-size:0.85rem;opacity:0.9;margin-top:4px;}
-.module-card .arrow{flex-shrink:0;display:flex;}
-.module-card .arrow svg{width:24px;height:24px;stroke:#fff;}
-.toll-free{
-  display:flex;align-items:center;gap:12px;
-  background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  padding:14px 24px;border-radius:100px;border:1px solid rgba(255,255,255,0.25);
-  color:#fff;font-weight:800;font-size:1.05rem;letter-spacing:0.5px;
-}
-.toll-free-logo{width:26px;height:26px;object-fit:contain;}
-@media(max-width:768px){
-  .bottomLinks{flex-direction:column;}
-  .module-wrapper{flex-direction:column;}
-  .toll-free{justify-content:center;}
-}
-
-/* ===== HOUSING STATS FOOTER (ACAG live figures) ===== */
-.housing-stats{margin-top:10px;}
-.housing-stats .cards-wrapper{
-  background:var(--crystal-glass-strong);
-  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
-  border:1px solid var(--crystal-border);border-radius:24px;
-  box-shadow:0 15px 50px rgba(0,0,0,0.25);
-}
-.stats-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
-}
-@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:520px){.stats-grid{grid-template-columns:1fr;}}
-
-/* Mobile: footer stats become round; desktop stays as-is */
-@media(max-width:520px){
-  .stats-grid{
-    grid-template-columns:repeat(2,1fr);
-    gap:14px;
-    justify-items:center;
+  :root{
+    --paper:#F6F3EC;
+    --paper-2:#EFEAE0;
+    --ink:#1D2B27;
+    --ink-soft:#4C5A55;
+    --teal:#2E6B5A;
+    --teal-deep:#1F4E42;
+    --gold:#AD7B31;
+    --line:#D8D1BF;
+    --line-soft:#E5E0D3;
+    --white:#FFFEFB;
+    --danger:#9C4433;
   }
-  .stats-card{
-    width:100%;
-    max-width:150px;
-    aspect-ratio:1/1;
-    min-height:0;
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', 'Noto Nastaliq Urdu', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .ur{ font-family:'Noto Nastaliq Urdu', serif; }
+  .num{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.2px; }
+
+  header.masthead{
+    border-bottom:1px solid var(--line);
+    background:var(--white);
+  }
+  .masthead-inner{
+    max-width:980px; margin:0 auto;
+    padding:28px 24px 22px;
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:12px;
+    direction:rtl;
+  }
+  .brand-mark{
+    width:38px; height:38px; border-radius:8px;
+    background:linear-gradient(155deg, var(--teal) 0%, var(--teal-deep) 100%);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--white); font-family:'Lora',serif; font-weight:700; font-size:17px;
+    flex-shrink:0;
+  }
+  .brand-text h1{
+    margin:0; font-family:'Noto Nastaliq Urdu', serif; font-weight:700;
+    font-size:24px; line-height:1.4; color:var(--ink);
+  }
+  .brand-text p{
+    margin:2px 0 0; font-size:12.5px; color:var(--ink-soft);
+    font-family:'IBM Plex Sans', sans-serif; letter-spacing:0.2px;
+  }
+  .status-pill{
+    font-size:11.5px; padding:6px 12px; border-radius:20px;
+    border:1px solid var(--line); color:var(--ink-soft);
+    background:var(--paper-2); white-space:nowrap;
+    font-family:'IBM Plex Sans', sans-serif;
+    display:flex; align-items:center; gap:6px;
+  }
+  .status-pill .dot{
+    width:7px; height:7px; border-radius:50%; background:#B3AA92; flex-shrink:0;
+  }
+  .status-pill.ok .dot{ background:var(--teal); }
+  .status-pill.err .dot{ background:var(--danger); }
+
+  main{ max-width:980px; margin:0 auto; padding:34px 24px 90px; }
+
+  .search-panel{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:26px 26px 22px;
+    box-shadow:0 1px 2px rgba(29,43,39,0.04);
+  }
+  .search-panel h2{
+    margin:0 0 4px; font-family:'Noto Nastaliq Urdu', serif; font-weight:600;
+    font-size:19px; direction:rtl; text-align:right;
+  }
+  .search-panel .hint{
+    margin:0 0 18px; font-size:13px; color:var(--ink-soft); direction:rtl; text-align:right;
+    font-family:'Noto Nastaliq Urdu', serif; line-height:2;
+  }
+  .search-row{
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+  #query{
+    flex:1 1 280px;
+    padding:13px 16px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-size:15px;
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--paper-2);
+    color:var(--ink);
+    direction:ltr;
+    text-align:left;
+  }
+  #query:focus{
+    outline:none; border-color:var(--teal); background:var(--white);
+  }
+  #query::placeholder{ color:#9AA39D; font-family:'IBM Plex Sans', sans-serif; }
+
+  button.primary{
+    padding:13px 26px;
+    background:var(--teal-deep);
+    color:var(--white);
+    border:none; border-radius:8px;
+    font-size:14.5px; font-weight:500;
+    font-family:'IBM Plex Sans', sans-serif;
+    cursor:pointer;
+    transition:background 0.15s ease;
+    white-space:nowrap;
+  }
+  button.primary:hover{ background:var(--teal); }
+  button.primary:active{ transform:translateY(1px); }
+
+  .results-header{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin:34px 0 12px; flex-wrap:wrap; gap:8px;
+    direction:rtl;
+  }
+  .results-header h3{
+    margin:0; font-family:'Noto Nastaliq Urdu', serif; font-weight:600; font-size:18px;
+  }
+  .results-count{
+    font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+  }
+
+  table.results{
+    width:100%; border-collapse:collapse;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  table.results th{
+    text-align:right;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600; font-size:11.5px;
+    letter-spacing:0.3px;
+    color:var(--ink-soft);
+    background:var(--paper-2);
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  table.results td{
+    padding:13px 14px;
+    border-bottom:1px solid var(--line-soft);
+    font-size:14px;
+    text-align:right;
+    vertical-align:middle;
+  }
+  table.results tbody tr:last-child td{ border-bottom:none; }
+  table.results tbody tr:hover{ background:#FAF8F2; }
+  td.mono, th.mono{ text-align:left; direction:ltr; }
+  td.mono{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink); }
+  td.member-name{ font-family:'Noto Nastaliq Urdu', serif; font-size:15px; }
+
+  .status-tag{
+    display:inline-block; padding:3px 10px; border-radius:20px;
+    font-size:11px; font-family:'IBM Plex Sans', sans-serif; font-weight:500;
+    direction:ltr;
+  }
+  .status-tag.collected{ background:#E4EFE9; color:var(--teal-deep); }
+  .status-tag.other{ background:var(--paper-2); color:var(--ink-soft); }
+
+  button.view-btn{
+    padding:7px 14px;
+    background:var(--white);
+    color:var(--teal-deep);
+    border:1.3px solid var(--teal);
+    border-radius:7px;
+    font-size:12.5px; font-weight:500;
+    font-family:'IBM Plex Sans', sans-serif;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:all 0.15s ease;
+  }
+  button.view-btn:hover{ background:var(--teal); color:var(--white); }
+
+  .empty-state, .loading-state{
+    text-align:center; padding:50px 20px; color:var(--ink-soft);
+    font-family:'Noto Nastaliq Urdu', serif; font-size:15px;
+    background:var(--white); border:1px dashed var(--line); border-radius:10px;
+  }
+  .loading-state .spinner{
+    width:22px; height:22px; margin:0 auto 14px;
+    border:2.5px solid var(--line);
+    border-top-color:var(--teal);
     border-radius:50%;
-    padding:16px;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    gap:6px;
+    animation:spin 0.8s linear infinite;
   }
-  .stats-card .card-header{
-    justify-content:center;
-    width:100%;
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* Modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(29,43,39,0.45);
+    display:none; align-items:center; justify-content:center;
+    padding:24px; z-index:50;
   }
-  .stats-card .bottomIcon{display:none;}
-  .stats-card .icon-wrap{width:36px;height:36px;}
-  .stats-card .card-body{width:100%;}
-  .stats-card .card-sub-details{display:flex;flex-direction:column;align-items:center;}
-  .stats-card .card-sub-details .value{font-size:1.05rem;}
-  .stats-card .money-value{justify-content:center;}
-  .stats-card .card-title{font-size:0.62rem;margin-top:2px;}
-}
+  .modal-backdrop.open{ display:flex; }
+  .modal{
+    background:var(--white); border-radius:12px;
+    max-width:560px; width:100%; max-height:82vh;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 12px 40px rgba(29,43,39,0.25);
+  }
+  .modal-head{
+    padding:22px 24px 16px; border-bottom:1px solid var(--line);
+    direction:rtl;
+  }
+  .modal-head h4{
+    margin:0 0 6px; font-family:'Noto Nastaliq Urdu', serif; font-weight:600; font-size:18px;
+  }
+  .modal-head .sub{
+    font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
+    direction:ltr; text-align:left;
+  }
+  .modal-close{
+    position:absolute; top:18px; left:20px;
+    width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--line); background:var(--paper-2);
+    color:var(--ink-soft); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-close:hover{ background:var(--line-soft); }
+  .modal-body{ padding:16px 24px 22px; overflow-y:auto; }
+  table.ledger{ width:100%; border-collapse:collapse; }
+  table.ledger th{
+    text-align:right; font-size:11px; font-weight:600; color:var(--ink-soft);
+    padding:8px 6px; border-bottom:1.5px solid var(--line);
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  table.ledger td{
+    padding:9px 6px; border-bottom:1px solid var(--line-soft); font-size:13.5px;
+    text-align:right;
+  }
+  table.ledger td.mono{ font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:left; }
+  .ledger-total{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:14px; padding-top:14px; border-top:1.5px solid var(--line);
+    direction:rtl;
+  }
+  .ledger-total .label{ font-family:'Noto Nastaliq Urdu', serif; font-size:14.5px; }
+  .ledger-total .value{ font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:600; color:var(--teal-deep); direction:ltr; }
 
-.stats-card{
-  position:relative;overflow:hidden;border-radius:18px;padding:22px;
-  color:#fff;min-height:140px;display:flex;flex-direction:column;justify-content:space-between;
-  box-shadow:0 10px 30px rgba(0,0,0,0.18);
-}
-.stats-card.loan-card{background:linear-gradient(135deg,#3B82F6,#1d4ed8);}
-.stats-card.amount-card{background:linear-gradient(135deg,#F5B51F,#c9890a);}
-.stats-card.house-card{background:linear-gradient(135deg,#4DB066,#2f7d43);}
-.stats-card.house-card-uc{background:linear-gradient(135deg,#FE902C,#c66916);}
+  footer{
+    text-align:center; padding:24px; color:#A79E8A; font-size:11.5px;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
 
-.stats-card .card-header{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;}
-.stats-card .icon-wrap{
-  width:48px;height:48px;border-radius:12px;
-  background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;
-}
-.stats-card .bottomIcon{position:absolute;right:-6px;bottom:-14px;opacity:0.9;pointer-events:none;}
-.stats-card .card-body{position:relative;z-index:1;}
-.stats-card .card-sub-details .value{
-  display:block;font-size:1.7rem;font-weight:800;line-height:1.2;
-}
-.stats-card .card-sub-details .value small{font-size:0.9rem;font-weight:600;opacity:0.85;}
-.stats-card .money-value{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
-.stats-card .currency-text{font-size:0.85rem;font-weight:700;opacity:0.85;}
-.stats-card .card-title{
-  margin-top:6px;font-size:0.85rem;font-weight:600;opacity:0.9;text-transform:uppercase;letter-spacing:0.4px;
-}
-.card:nth-child(3){animation-delay:0.1s;}
-.card:nth-child(4){animation-delay:0.2s;}
-.card:nth-child(5){animation-delay:0.3s;}
-.card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));
-  border-radius:20px 20px 0 0;
-}
-
-/* Status */
-.status{display:flex;align-items:center;justify-content:space-between;gap:20px;}
-.status-info{display:flex;align-items:center;gap:18px;}
-.status-icon{
-  width:60px;height:60px;
-  background:linear-gradient(135deg,rgba(0,61,130,0.1),rgba(0,82,163,0.1));
-  border:2px solid rgba(0,61,130,0.2);border-radius:16px;
-  display:flex;align-items:center;justify-content:center;font-size:30px;
-  animation:bounce 2.5s ease-in-out infinite;
-}
-@keyframes bounce{0%,100%{transform:scale(1) translateY(0);}50%{transform:scale(1.08) translateY(-5px);}}
-.status-text h3{font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:5px;}
-.status-text p{font-size:0.9rem;color:var(--text-light);font-family:monospace;}
-
-.badge{
-  padding:10px 20px;border-radius:100px;font-size:0.9rem;font-weight:700;
-  display:flex;align-items:center;gap:8px;
-  text-transform:uppercase;letter-spacing:0.5px;
-}
-.badge.loading{background:linear-gradient(135deg,rgba(0,61,130,0.15),rgba(0,82,163,0.15));color:var(--navy);border:1px solid rgba(0,61,130,0.2);}
-.badge.success{background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(5,150,105,0.15));color:var(--success);border:1px solid rgba(16,185,129,0.2);}
-.badge.error{background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(220,38,38,0.15));color:var(--error);border:1px solid rgba(239,68,68,0.2);}
-
-.spinner{width:16px;height:16px;border:2.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* Search */
-.card-title{color:var(--navy);font-size:1.6rem;font-weight:800;margin-bottom:25px;display:flex;align-items:center;gap:12px;}
-.card-title::before{content:'🔍';font-size:1.8rem;}
-.search-box{display:flex;gap:15px;margin-bottom:20px;}
-.input-group{flex:1;}
-
-label{display:block;font-size:0.95rem;font-weight:700;margin-bottom:10px;color:var(--navy);}
-input[type="text"]{
-  width:100%;padding:16px 20px;font-size:1.05rem;
-  font-family:monospace;font-weight:600;
-  background:var(--bg-light);border:2px solid var(--border);border-radius:14px;
-  color:var(--text-dark);transition:all 0.3s ease;
-}
-input[type="text"]:focus{
-  outline:none;border-color:var(--navy);background:white;
-  box-shadow:0 0 0 4px rgba(0,61,130,0.1),0 4px 20px rgba(0,61,130,0.15);
-  transform:translateY(-2px);
-}
-input[type="text"]::placeholder{color:var(--text-light);font-weight:400;}
-
-button.search-btn{
-  align-self:flex-end;padding:16px 40px;
-  background:linear-gradient(135deg,var(--navy),var(--navy-light));
-  color:white;border:none;border-radius:14px;font-size:1.05rem;font-weight:700;
-  cursor:pointer;transition:all 0.3s ease;font-family:inherit;
-  box-shadow:0 4px 20px rgba(0,61,130,0.4);white-space:nowrap;
-}
-button.search-btn:hover:not(:disabled){background:linear-gradient(135deg,var(--navy-light),#0066cc);transform:translateY(-3px);box-shadow:0 6px 30px rgba(0,61,130,0.5);}
-button.search-btn:disabled{opacity:0.6;cursor:not-allowed;}
-
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;}
-.tool-btn{
-  padding:18px 24px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-light));
-  color:white;border:none;border-radius:14px;font-size:1rem;font-weight:700;
-  cursor:pointer;transition:all 0.3s ease;font-family:inherit;
-  box-shadow:0 4px 20px rgba(197,157,95,0.4);
-  display:flex;align-items:center;justify-content:center;gap:10px;
-}
-.tool-btn:hover{background:linear-gradient(135deg,var(--gold-light),var(--gold));transform:translateY(-3px);box-shadow:0 6px 30px rgba(197,157,95,0.5);}
-.tool-btn.voice-btn{background:linear-gradient(135deg,#8b5cf6,#a855f7);}
-.tool-btn.voice-btn:hover{background:linear-gradient(135deg,#a855f7,#8b5cf6);}
-.tool-btn.voice-btn.listening{animation:pulseVoice 1s ease-in-out infinite;}
-@keyframes pulseVoice{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
-
-/* Modal */
-.modal{
-  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.9);z-index:9999;
-  justify-content:center;align-items:center;padding:20px;
-}
-.modal.active{display:flex;}
-.modal-content{
-  background:white;border-radius:20px;padding:30px;max-width:600px;width:100%;
-  box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:slideUp 0.4s ease;
-  max-height:90vh;overflow-y:auto;
-}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;}
-.modal-header h3{color:var(--navy);font-size:1.5rem;font-weight:800;}
-.btn-close{
-  background:var(--error);color:white;border:none;width:40px;height:40px;
-  border-radius:50%;cursor:pointer;font-size:1.3rem;
-  display:flex;align-items:center;justify-content:center;transition:all 0.3s;
-}
-.btn-close:hover{transform:scale(1.1);}
-
-#reader{width:100%;border-radius:12px;overflow:hidden;}
-.modal-info{margin-top:20px;padding:15px;background:var(--bg-light);border-radius:12px;color:var(--text-light);font-size:0.9rem;text-align:center;}
-
-#ocrPreview{width:100%;max-height:400px;border-radius:12px;margin-bottom:20px;display:none;}
-.ocr-input{width:100%;padding:40px 20px;border:2px dashed var(--border);border-radius:12px;text-align:center;cursor:pointer;transition:all 0.3s;background:var(--bg-light);}
-.ocr-input:hover{border-color:var(--navy);background:white;}
-.ocr-progress{margin-top:20px;display:none;}
-.progress-bar{width:100%;height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold));transition:width 0.3s;width:0%;}
-.progress-text{text-align:center;margin-top:12px;color:var(--text-light);font-size:0.95rem;font-weight:600;}
-
-/* Results */
-.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;flex-wrap:wrap;gap:15px;}
-.results-header h2{color:var(--navy);font-size:1.6rem;font-weight:800;}
-.results-actions{display:flex;gap:10px;flex-wrap:wrap;}
-.action-btn{
-  padding:10px 20px;background:var(--bg-light);border:2px solid var(--border);
-  border-radius:10px;color:var(--navy);font-weight:600;cursor:pointer;transition:all 0.3s;font-size:0.9rem;
-}
-.action-btn:hover{background:white;border-color:var(--navy);transform:translateY(-2px);}
-.count{color:var(--text-light);font-weight:700;font-size:1rem;}
-
-.table-wrapper{overflow-x:auto;border-radius:14px;border:2px solid var(--border);}
-table{width:100%;border-collapse:collapse;}
-thead{background:linear-gradient(135deg,var(--navy),var(--navy-dark));}
-th{padding:18px 20px;text-align:left;font-size:0.85rem;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:1px;}
-tbody tr{border-bottom:1px solid var(--border);transition:all 0.25s ease;animation:fadeInRow 0.4s ease backwards;}
-@keyframes fadeInRow{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
-tbody tr:hover{background:linear-gradient(90deg,rgba(0,61,130,0.03),transparent);transform:translateX(5px);}
-tbody tr:last-child{border-bottom:none;}
-td{padding:18px 20px;font-size:0.95rem;color:var(--text-dark);}
-td:first-child{font-family:monospace;font-weight:700;color:var(--navy);}
-td:nth-child(2){font-family:monospace;color:var(--navy-light);}
-
-.state{padding:100px 40px;text-align:center;}
-.state-icon{font-size:70px;margin-bottom:25px;display:inline-block;animation:bounce 2.5s ease-in-out infinite;}
-.state h3{font-size:1.5rem;font-weight:800;color:var(--navy);margin-bottom:10px;}
-.state p{color:var(--text-light);font-size:1.05rem;}
-.loading-icon{width:70px;height:70px;border:5px solid var(--border);border-top-color:var(--navy);border-right-color:var(--gold);border-radius:50%;margin:0 auto 25px;animation:spin 1s linear infinite;}
-
-/* ===========================
-   RESULT POPUP MODAL
-   =========================== */
-.result-modal{
-  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.85);z-index:10500;
-  justify-content:center;align-items:center;padding:20px;
-}
-.result-modal.active{display:flex;}
-.result-modal-box{
-  background:white;border-radius:20px;width:100%;max-width:900px;
-  max-height:88vh;overflow:hidden;display:flex;flex-direction:column;
-  box-shadow:0 25px 70px rgba(0,0,0,0.55);animation:slideUp 0.4s ease;
-}
-.result-modal-header{
-  background:linear-gradient(135deg,var(--navy),var(--navy-dark));
-  padding:20px 25px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
-}
-.result-modal-header h3{color:white;font-size:1.3rem;font-weight:800;}
-.result-modal-header p{color:var(--gold-light);font-size:0.85rem;margin-top:4px;}
-.result-modal-body{padding:0;overflow-y:auto;flex:1;}
-.result-modal-body .table-wrapper{border:none;border-radius:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.result-modal-body table{width:auto;min-width:100%;}
-.result-modal-body th,.result-modal-body td{white-space:nowrap;}
-.result-modal-body td:first-child,.result-modal-body th:first-child{
-  position:sticky;left:0;z-index:2;
-  font-family:inherit;color:var(--text-dark);
-  background:var(--bg-light);
-  box-shadow:2px 0 5px rgba(0,0,0,0.06);
-}
-.result-modal-body thead th:first-child,.result-modal-body tr:first-child th:first-child{
-  background:var(--navy-dark);color:var(--gold-light);
-}
-.result-modal-body td:nth-child(2){font-family:inherit;color:var(--text-dark);}
-@media (max-width:600px){
-  .result-modal-box{max-width:100%;max-height:94vh;border-radius:14px;}
-  .result-modal-header{padding:16px 18px;}
-  .result-modal-header h3{font-size:1.1rem;}
-  .result-modal-body th,.result-modal-body td{padding:12px 14px;font-size:0.85rem;}
-  .result-modal-footer{padding:12px 15px;flex-wrap:wrap;}
-  .result-modal-footer .action-btn{flex:1;min-width:80px;text-align:center;padding:10px 8px;font-size:0.8rem;}
-}
-.result-modal-footer{padding:15px 25px;border-top:2px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
-
-/* ===========================
-   ADMIN PANEL MODAL
-   =========================== */
-.admin-modal{
-  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.95);z-index:10000;
-  justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto;
-}
-.admin-modal.active{display:flex;}
-
-.admin-panel{
-  background:#0f172a;border-radius:24px;width:100%;max-width:1000px;
-  box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 0 1px rgba(124,58,237,0.3);
-  animation:slideUp 0.4s ease;margin:auto;overflow:hidden;
-}
-
-.admin-header{
-  background:linear-gradient(135deg,#1e1b4b,#312e81);
-  padding:30px 35px;display:flex;justify-content:space-between;align-items:center;
-  border-bottom:1px solid rgba(124,58,237,0.3);
-}
-.admin-header-left{display:flex;align-items:center;gap:15px;}
-.admin-badge{
-  width:50px;height:50px;
-  background:linear-gradient(135deg,var(--admin),var(--admin-light));
-  border-radius:14px;display:flex;align-items:center;justify-content:center;
-  font-size:1.5rem;box-shadow:0 8px 25px rgba(124,58,237,0.4);
-}
-.admin-header h2{color:white;font-size:1.6rem;font-weight:800;}
-.admin-header p{color:#a5b4fc;font-size:0.9rem;margin-top:3px;}
-.btn-close-admin{
-  background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.3);
-  width:44px;height:44px;border-radius:12px;cursor:pointer;font-size:1.3rem;
-  display:flex;align-items:center;justify-content:center;transition:all 0.3s;
-}
-.btn-close-admin:hover{background:rgba(239,68,68,0.4);transform:scale(1.05);}
-
-.admin-tabs{
-  display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.08);
-  background:#0f172a;padding:0 35px;
-}
-.admin-tab{
-  padding:16px 24px;color:#64748b;font-weight:700;font-size:0.9rem;
-  cursor:pointer;border-bottom:3px solid transparent;transition:all 0.3s;
-  text-transform:uppercase;letter-spacing:0.5px;background:none;border-top:none;border-left:none;border-right:none;
-  font-family:inherit;
-}
-.admin-tab:hover{color:#94a3b8;}
-.admin-tab.active{color:var(--admin-light);border-bottom-color:var(--admin-light);}
-
-.admin-body{padding:35px;}
-
-/* Tab Panels */
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
-
-/* Stats Row */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-bottom:30px;}
-.stat-card{
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  border-radius:16px;padding:20px;text-align:center;transition:all 0.3s;
-}
-.stat-card:hover{background:rgba(255,255,255,0.07);transform:translateY(-2px);}
-.stat-icon{font-size:2rem;margin-bottom:10px;}
-.stat-value{font-size:1.8rem;font-weight:800;color:white;margin-bottom:5px;font-family:monospace;}
-.stat-label{font-size:0.8rem;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;}
-
-/* User Management */
-.section-title{
-  color:white;font-size:1.1rem;font-weight:700;margin-bottom:20px;
-  display:flex;align-items:center;gap:10px;padding-bottom:12px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.section-title span{background:rgba(197,157,95,0.2);color:var(--gold);padding:4px 10px;border-radius:6px;font-size:0.8rem;}
-
-.user-list{display:flex;flex-direction:column;gap:12px;}
-.user-row{
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  border-radius:14px;padding:16px 20px;
-  display:flex;align-items:center;gap:15px;transition:all 0.3s;
-}
-.user-row:hover{background:rgba(255,255,255,0.07);}
-.user-row-avatar{
-  width:42px;height:42px;border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:1.1rem;flex-shrink:0;
-}
-.user-row-avatar.role-admin{background:linear-gradient(135deg,var(--admin),var(--admin-light));color:white;}
-.user-row-avatar.role-user{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;}
-.user-row-avatar.role-demo{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:white;}
-
-.user-row-info{flex:1;}
-.user-row-info h4{color:white;font-weight:700;font-size:0.95rem;}
-.user-row-info p{color:#64748b;font-size:0.8rem;margin-top:2px;font-family:monospace;}
-
-.user-row-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.role-badge{
-  padding:4px 12px;border-radius:100px;font-size:0.75rem;font-weight:700;
-  text-transform:uppercase;letter-spacing:0.5px;
-}
-.role-badge.admin{background:rgba(124,58,237,0.2);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);}
-.role-badge.user{background:rgba(0,61,130,0.3);color:#93c5fd;border:1px solid rgba(0,61,130,0.4);}
-.role-badge.demo{background:rgba(197,157,95,0.15);color:var(--gold);border:1px solid rgba(197,157,95,0.3);}
-.role-badge.blocked{background:rgba(239,68,68,0.2);color:#f87171;border:1px solid rgba(239,68,68,0.3);}
-
-.user-actions{display:flex;gap:8px;}
-.btn-sm{
-  padding:7px 14px;border-radius:8px;font-size:0.8rem;font-weight:700;
-  cursor:pointer;transition:all 0.3s;border:1px solid;font-family:inherit;
-}
-.btn-block{background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);}
-.btn-block:hover{background:rgba(239,68,68,0.35);}
-.btn-unblock{background:rgba(16,185,129,0.15);color:#6ee7b7;border-color:rgba(16,185,129,0.3);}
-.btn-unblock:hover{background:rgba(16,185,129,0.35);}
-.btn-reset-pw{background:rgba(245,158,11,0.15);color:#fcd34d;border-color:rgba(245,158,11,0.3);}
-.btn-reset-pw:hover{background:rgba(245,158,11,0.35);}
-.btn-delete{background:rgba(220,38,38,0.15);color:#fca5a5;border-color:rgba(220,38,38,0.3);}
-.btn-delete:hover{background:rgba(220,38,38,0.35);}
-
-/* Add User Form */
-.add-user-form{
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  border-radius:16px;padding:25px;margin-top:20px;
-}
-.add-user-form h3{color:white;font-weight:700;margin-bottom:20px;font-size:1rem;}
-.form-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;}
-.admin-input{
-  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
-  border-radius:10px;padding:12px 16px;color:white;font-size:0.9rem;
-  font-family:inherit;transition:all 0.3s;width:100%;
-}
-.admin-input:focus{outline:none;border-color:var(--admin-light);box-shadow:0 0 0 3px rgba(139,92,246,0.2);}
-.admin-input::placeholder{color:#475569;}
-.admin-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
-
-.admin-input option{background:#1e293b;color:white;}
-
-.btn-add-user{
-  padding:12px 20px;background:linear-gradient(135deg,var(--success),#059669);
-  color:white;border:none;border-radius:10px;font-weight:700;
-  cursor:pointer;transition:all 0.3s;font-family:inherit;white-space:nowrap;font-size:0.9rem;
-}
-.btn-add-user:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(16,185,129,0.4);}
-
-/* ===== DNS BLOCK PANEL ===== */
-.dns-block-panel{display:flex;flex-direction:column;gap:20px;}
-
-.dns-info-bar{
-  background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);
-  border-radius:12px;padding:15px 20px;display:flex;align-items:center;gap:12px;
-}
-.dns-info-bar span{color:#fcd34d;font-size:0.9rem;}
-
-.dns-input-row{display:flex;gap:12px;align-items:flex-end;}
-.dns-input-group{flex:1;}
-.dns-input-group label{color:#94a3b8;font-size:0.85rem;font-weight:600;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
-.btn-add-dns{
-  padding:12px 24px;background:linear-gradient(135deg,var(--danger),#b91c1c);
-  color:white;border:none;border-radius:10px;font-weight:700;
-  cursor:pointer;transition:all 0.3s;font-family:inherit;white-space:nowrap;font-size:0.9rem;
-}
-.btn-add-dns:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(220,38,38,0.4);}
-
-.blocked-list{
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;
-}
-.blocked-list-header{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.blocked-list-header h4{color:white;font-weight:700;}
-.blocked-count{background:rgba(239,68,68,0.2);color:#f87171;padding:4px 12px;border-radius:100px;font-size:0.8rem;font-weight:700;}
-
-.blocked-item{
-  display:flex;align-items:center;gap:15px;padding:14px 20px;
-  border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.2s;
-}
-.blocked-item:last-child{border-bottom:none;}
-.blocked-item:hover{background:rgba(255,255,255,0.04);}
-.blocked-domain{flex:1;color:#e2e8f0;font-family:monospace;font-size:0.9rem;}
-.blocked-reason{color:#64748b;font-size:0.8rem;flex:1;}
-.blocked-date{color:#475569;font-size:0.75rem;white-space:nowrap;}
-.btn-unblock-dns{
-  padding:5px 12px;background:rgba(16,185,129,0.15);color:#6ee7b7;
-  border:1px solid rgba(16,185,129,0.3);border-radius:8px;
-  font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit;
-}
-.btn-unblock-dns:hover{background:rgba(16,185,129,0.35);}
-
-.no-blocked{padding:40px;text-align:center;color:#475569;}
-.no-blocked-icon{font-size:2.5rem;margin-bottom:10px;}
-
-/* Activity Log */
-.log-list{display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;}
-.log-item{
-  display:flex;align-items:center;gap:12px;
-  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
-  border-radius:10px;padding:12px 16px;
-}
-.log-icon{font-size:1.2rem;flex-shrink:0;}
-.log-text{flex:1;color:#94a3b8;font-size:0.85rem;}
-.log-text strong{color:#e2e8f0;}
-.log-time{color:#475569;font-size:0.75rem;font-family:monospace;white-space:nowrap;}
-
-/* Reset PW Modal */
-.reset-pw-modal{
-  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.7);z-index:10001;
-  justify-content:center;align-items:center;padding:20px;
-}
-.reset-pw-modal.active{display:flex;}
-.reset-pw-box{
-  background:#1e293b;border-radius:20px;padding:30px;max-width:380px;width:100%;
-  border:1px solid rgba(255,255,255,0.1);animation:slideUp 0.3s ease;
-}
-.reset-pw-box h3{color:white;font-weight:800;margin-bottom:20px;}
-.reset-pw-box .admin-input{margin-bottom:15px;}
-.reset-actions{display:flex;gap:10px;margin-top:5px;}
-.btn-confirm{
-  flex:1;padding:12px;background:linear-gradient(135deg,var(--admin),var(--admin-light));
-  color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit;
-}
-.btn-confirm:hover{transform:translateY(-1px);}
-.btn-cancel{
-  flex:1;padding:12px;background:rgba(255,255,255,0.08);
-  color:#94a3b8;border:none;border-radius:10px;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit;
-}
-.btn-cancel:hover{background:rgba(255,255,255,0.15);}
-
-/* Responsive */
-@media(max-width:768px){
-  body{padding:15px;}
-  h1{font-size:2rem;}
-  .card{padding:25px;}
-  .user-header{flex-direction:column;}
-  .status{flex-direction:column;text-align:center;}
-  .search-box{flex-direction:column;}
-  button.search-btn{width:100%;}
-  .tools-grid{grid-template-columns:1fr;}
-  .results-header{flex-direction:column;align-items:flex-start;}
-  .results-actions{width:100%;}
-  .action-btn{flex:1;}
-  table{font-size:0.85rem;}
-  th,td{padding:12px 15px;}
-  .admin-body{padding:20px;}
-  .form-row{grid-template-columns:1fr 1fr;gap:10px;}
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .admin-tabs{overflow-x:auto;padding:0 20px;}
-  .admin-tab{white-space:nowrap;}
-}
-
-/* =========================================================
-   LIQUID GLASS THEME — Apple-style refractive glass
-   ========================================================= */
-.login-box,
-.card{
-  background:var(--crystal-glass-strong) !important;
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  border:1px solid var(--crystal-border) !important;
-  border-radius:28px !important;
-  box-shadow:
-    0 20px 60px rgba(0,0,0,0.35),
-    0 2px 8px rgba(0,0,0,0.15),
-    inset 0 1px 1px rgba(255,255,255,0.9),
-    inset 0 -1px 12px rgba(255,255,255,0.15) !important;
-  position:relative;
-  overflow:hidden;
-}
-.login-box::before,
-.card::before{
-  content:'';
-  position:absolute;
-  top:0;left:8%;right:8%;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.95),transparent);
-  z-index:2;
-}
-.login-box::after,
-.card::after{
-  content:'';
-  position:absolute;
-  top:-70%;left:-25%;
-  width:55%;height:240%;
-  background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,0.5) 48%,rgba(255,255,255,0.1) 56%,transparent 72%);
-  transform:rotate(20deg);
-  pointer-events:none;
-  animation:crystalSheen 9s ease-in-out infinite;
-}
-@keyframes crystalSheen{
-  0%,100%{transform:translateX(-10%) rotate(20deg);}
-  50%{transform:translateX(150%) rotate(20deg);}
-}
-
-.login-header{
-  background:linear-gradient(135deg,rgba(10,132,255,0.9) 0%,rgba(191,90,242,0.85) 100%) !important;
-}
-
-.form-input{
-  background:rgba(255,255,255,0.5) !important;
-  border:1.5px solid rgba(255,255,255,0.7) !important;
-  border-radius:14px !important;
-  backdrop-filter:blur(10px);
-}
-.form-input:focus{
-  background:rgba(255,255,255,0.85) !important;
-  box-shadow:0 0 0 4px rgba(10,132,255,0.3) !important;
-}
-
-/* ---- Liquid Glass pill buttons ---- */
-.btn-login,
-button.search-btn,
-.btn-admin-panel,
-.btn-add-user,
-.btn-confirm{
-  background:linear-gradient(135deg,rgba(10,132,255,0.85),rgba(191,90,242,0.85)) !important;
-  border:1px solid rgba(255,255,255,0.55) !important;
-  border-radius:100px !important;
-  color:#fff !important;
-  position:relative;
-  overflow:hidden;
-  backdrop-filter:blur(14px);
-  box-shadow:
-    0 8px 24px rgba(10,132,255,0.4),
-    inset 0 1px 1px rgba(255,255,255,0.8),
-    inset 0 -2px 8px rgba(255,255,255,0.15) !important;
-  text-shadow:0 1px 3px rgba(0,0,0,0.2);
-  transition:all 0.3s;
-}
-.btn-login:hover:not(:disabled),
-button.search-btn:hover:not(:disabled),
-.btn-admin-panel:hover,
-.btn-add-user:hover,
-.btn-confirm:hover{
-  transform:translateY(-3px) !important;
-  box-shadow:
-    0 14px 34px rgba(10,132,255,0.5),
-    inset 0 1px 1px rgba(255,255,255,0.9) !important;
-  filter:brightness(1.08);
-}
-.btn-login::before,
-button.search-btn::before{
-  content:'';
-  position:absolute;
-  top:0;left:-75%;
-  width:50%;height:100%;
-  background:linear-gradient(120deg,transparent,rgba(255,255,255,0.7),transparent);
-  transform:skewX(-20deg);
-  animation:crystalBtnShine 3.2s ease-in-out infinite;
-}
-@keyframes crystalBtnShine{
-  0%{left:-75%;}
-  60%,100%{left:130%;}
-}
-
-.action-btn,
-.btn-logout,
-.btn-cancel,
-.btn-unblock-dns,
-.btn-sm{
-  background:rgba(255,255,255,0.45) !important;
-  border:1px solid rgba(255,255,255,0.7) !important;
-  border-radius:100px !important;
-  color:var(--navy-dark) !important;
-  backdrop-filter:blur(12px);
-  box-shadow:
-    0 4px 14px rgba(0,0,0,0.15),
-    inset 0 1px 1px rgba(255,255,255,0.9) !important;
-  transition:all 0.3s;
-}
-.action-btn:hover,
-.btn-logout:hover,
-.btn-cancel:hover,
-.btn-unblock-dns:hover,
-.btn-sm:hover{
-  background:rgba(255,255,255,0.75) !important;
-  transform:translateY(-2px) !important;
-  box-shadow:0 8px 22px rgba(0,0,0,0.2) !important;
-}
-
-.user-info{
-  background:rgba(255,255,255,0.14) !important;
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid rgba(255,255,255,0.35) !important;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,0.4),0 8px 24px rgba(0,0,0,0.2) !important;
-}
-
-::-webkit-scrollbar{width:10px;height:10px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:linear-gradient(135deg,var(--navy),var(--gold));border-radius:5px;}
-::-webkit-scrollbar-thumb:hover{background:linear-gradient(135deg,var(--gold),var(--navy));}
-
-/* ===== TOP NAV TABS ===== */
-.site-nav{
-  display:flex;
-  justify-content:center;
-  margin-bottom:24px;
-  animation:slideDown 0.6s ease;
-}
-.site-nav-inner{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  background:rgba(10,20,45,0.55);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid rgba(255,255,255,0.25);
-  border-radius:100px;
-  padding:10px;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,0.15),0 8px 24px rgba(0,0,0,0.35);
-}
-.site-nav-inner a{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:11px 22px;
-  border-radius:100px;
-  font-weight:700;
-  font-size:0.92rem;
-  text-decoration:none;
-  color:#ffffff;
-  background:rgba(255,255,255,0.12);
-  border:1px solid rgba(255,255,255,0.25);
-  white-space:nowrap;
-  transition:all 0.3s;
-}
-.site-nav-inner a:hover{
-  background:rgba(255,255,255,0.28);
-  border-color:rgba(255,255,255,0.5);
-  transform:translateY(-1px);
-}
-.site-nav-inner a.active{
-  background:linear-gradient(135deg,var(--navy),var(--navy-light));
-  border-color:transparent;
-  color:#fff;
-  box-shadow:0 4px 18px rgba(10,132,255,0.6);
-  cursor:default;
-}
-.site-nav-inner a .nav-dot{
-  width:6px;height:6px;border-radius:50%;
-  background:currentColor;opacity:0.8;
-}
-@media(max-width:600px){
-  .site-nav-inner{width:100%;justify-content:center;}
-  .site-nav-inner a{padding:9px 16px;font-size:0.85rem;}
-}
+  @media (max-width: 640px){
+    table.results thead{ display:none; }
+    table.results, table.results tbody, table.results tr, table.results td{ display:block; width:100%; }
+    table.results tr{ padding:14px; border-bottom:1px solid var(--line); }
+    table.results td{ border:none; padding:4px 0; text-align:right; }
+    table.results td::before{
+      content: attr(data-label);
+      display:block; font-size:10.5px; color:var(--ink-soft);
+      font-family:'IBM Plex Sans', sans-serif; margin-bottom:2px;
+    }
+    td.view-cell{ padding-top:10px; }
+  }
 </style>
-
-<style id="">
-/* =========================================================
-   Applied only as a visual theme override.
-   HTML / JavaScript / existing functionality unchanged.
-   ========================================================= */
-
-:root{
-  --navy:#1f4e79;
-  --navy-dark:#173a5c;
-  --navy-light:#2f6f9f;
-  --gold:#c59d5f;
-  --gold-dark:#a98248;
-  --gold-light:#dfc38f;
-  --bg-light:#f5f7fa;
-  --text-dark:#3c4043;
-  --text-light:#7b8794;
-  --border:#dfe3e8;
-  --success:#28a745;
-  --error:#dc3545;
-  --warning:#f0ad4e;
-}
-
-body{
-  font-family:Arial, Helvetica, sans-serif !important;
-  background:#f3f5f7 !important;
-  color:var(--text-dark) !important;
-  padding:0 !important;
-  min-height:100vh;
-}
-
-body::before{
-  display:none !important;
-}
-
-/* Main/login containers */
-.login-container{
-  min-height:100vh !important;
-  background:#f3f5f7 !important;
-  padding:30px 15px;
-}
-
-.login-box{
-  max-width:430px !important;
-  background:#fff !important;
-  border:1px solid #e3e6e8 !important;
-  border-radius:4px !important;
-  box-shadow:0 8px 30px rgba(0,0,0,.10) !important;
-  overflow:hidden !important;
-}
-
-.login-box::before,
-.login-box::after,
-.card::before,
-.card::after{
-  display:none !important;
-}
-
-.login-header{
-  background:#fff !important;
-  padding:30px 30px 15px !important;
-  border-bottom:1px solid #eee;
-}
-
-.login-header::before{
-  display:none !important;
-}
-
-.login-logo{
-  width:88px !important;
-  height:88px !important;
-  margin:0 auto 15px !important;
-  background:#fff !important;
-  border:1px solid #e4e4e4 !important;
-  color:var(--navy) !important;
-  box-shadow:0 3px 12px rgba(0,0,0,.08) !important;
-  animation:none !important;
-}
-
-.login-title{
-  color:#333 !important;
-  font-size:1.65rem !important;
-  font-weight:600 !important;
-}
-
-.login-subtitle{
-  color:#8a8f94 !important;
-  font-size:.9rem !important;
-}
-
-.login-body{
-  padding:25px 30px 30px !important;
-}
-
-.form-group{
-  margin-bottom:18px !important;
-}
-
-.form-label,
-label{
-  color:#555 !important;
-  font-weight:500 !important;
-  font-size:.9rem !important;
-}
-
-.input-icon{
-  color:#9aa0a6 !important;
-}
-
-.form-input,
-input[type="text"]{
-  background:#fff !important;
-  border:1px solid #d8dde2 !important;
-  border-radius:4px !important;
-  color:#333 !important;
-  box-shadow:none !important;
-  font-family:Arial, Helvetica, sans-serif !important;
-}
-
-.form-input:focus,
-input[type="text"]:focus{
-  border-color:#80a9c7 !important;
-  background:#fff !important;
-  box-shadow:0 0 0 2px rgba(31,78,121,.10) !important;
-  transform:none !important;
-}
-
-.form-input::placeholder,
-input[type="text"]::placeholder{
-  color:#a0a5aa !important;
-}
-
-.password-toggle{
-  color:#8b9298 !important;
-}
-
-.password-toggle:hover{
-  color:var(--navy) !important;
-}
-
-.remember-me{
-  margin-bottom:20px !important;
-}
-
-.remember-me label{
-  color:#666 !important;
-}
-
-.btn-login,
-button.search-btn,
-.btn-admin-panel,
-.btn-add-user,
-.btn-confirm{
-  background:var(--navy) !important;
-  border:1px solid var(--navy-dark) !important;
-  border-radius:4px !important;
-  box-shadow:0 2px 5px rgba(0,0,0,.12) !important;
-  text-shadow:none !important;
-}
-
-.btn-login{
-  padding:13px 16px !important;
-  font-size:1rem !important;
-}
-
-.btn-login:hover:not(:disabled),
-button.search-btn:hover:not(:disabled),
-.btn-admin-panel:hover,
-.btn-add-user:hover,
-.btn-confirm:hover{
-  background:var(--navy-dark) !important;
-  transform:none !important;
-  filter:none !important;
-  box-shadow:0 3px 8px rgba(0,0,0,.16) !important;
-}
-
-.btn-login::before,
-button.search-btn::before{
-  display:none !important;
-}
-
-/* Main application */
-.container{
-  max-width:1180px !important;
-}
-
-.user-info{
-  background:#fff !important;
-  border:1px solid #e0e4e8 !important;
-  box-shadow:0 2px 8px rgba(0,0,0,.08) !important;
-  backdrop-filter:none !important;
-}
-
-.user-details h3{
-  color:#333 !important;
-}
-
-.user-details p{
-  color:#888 !important;
-}
-
-.user-avatar{
-  background:var(--navy) !important;
-}
-
-.user-avatar.admin-avatar{
-  background:var(--gold-dark) !important;
-}
-
-.btn-admin-panel{
-  background:var(--navy) !important;
-  color:#fff !important;
-}
-
-.btn-logout{
-  background:#fff !important;
-  color:#b33a3a !important;
-  border:1px solid #e0caca !important;
-  box-shadow:0 2px 5px rgba(0,0,0,.06) !important;
-}
-
-.btn-logout:hover{
-  background:#fafafa !important;
-  transform:none !important;
-}
-
-.header{
-  margin-bottom:30px !important;
-}
-
-.logo{
-  background:#fff !important;
-  border:1px solid #ddd !important;
-  color:var(--navy) !important;
-  box-shadow:0 5px 18px rgba(0,0,0,.10) !important;
-  animation:none !important;
-}
-
-.logo::before{
-  display:none !important;
-}
-
-h1{
-  color:#333 !important;
-  text-shadow:none !important;
-  font-weight:600 !important;
-}
-
-.subtitle{
-  color:#888 !important;
-}
-
-.card{
-  background:#fff !important;
-  border:1px solid #e1e5e8 !important;
-  border-radius:5px !important;
-  box-shadow:0 4px 18px rgba(0,0,0,.08) !important;
-  backdrop-filter:none !important;
-}
-
-.card-title,
-.status-text h3,
-.results-header h2,
-.state h3{
-  color:var(--navy) !important;
-}
-
-.status-icon{
-  background:#f1f5f8 !important;
-  border-color:#d9e1e8 !important;
-}
-
-.status-text p,
-.state p,
-.count{
-  color:#7b8794 !important;
-}
-
-button.search-btn{
-  background:var(--navy) !important;
-}
-
-.tool-btn{
-  background:var(--gold) !important;
-  box-shadow:0 2px 8px rgba(197,157,95,.25) !important;
-}
-
-.tool-btn:hover{
-  background:var(--gold-dark) !important;
-  transform:none !important;
-}
-
-.table-wrapper{
-  border-color:#dfe3e8 !important;
-}
-
-thead{
-  background:linear-gradient(135deg,var(--navy),var(--navy-dark)) !important;
-}
-
-thead th{
-  color:#ffffff !important;
-  background:linear-gradient(135deg,var(--navy),var(--navy-dark)) !important;
-  font-weight:800 !important;
-  border-bottom:2px solid var(--navy-dark) !important;
-}
-
-tbody tr:hover{
-  background:#f6f8fa !important;
-  transform:none !important;
-}
-
-td{
-  color:#444 !important;
-}
-
-td:first-child,
-td:nth-child(2){
-  color:var(--navy) !important;
-}
-
-.action-btn,
-.btn-cancel,
-.btn-unblock-dns,
-.btn-sm{
-  background:#fff !important;
-  color:var(--navy) !important;
-  border:1px solid #d8dde2 !important;
-  box-shadow:0 2px 5px rgba(0,0,0,.06) !important;
-}
-
-.action-btn:hover,
-.btn-cancel:hover,
-.btn-unblock-dns:hover,
-.btn-sm:hover{
-  background:#f5f7f9 !important;
-  transform:none !important;
-  box-shadow:0 2px 7px rgba(0,0,0,.10) !important;
-}
-
-.modal-content{
-  border-radius:5px !important;
-  box-shadow:0 12px 40px rgba(0,0,0,.25) !important;
-}
-
-.modal-header h3{
-  color:var(--navy) !important;
-}
-
-.admin-panel{
-  border-radius:5px !important;
-  box-shadow:0 20px 60px rgba(0,0,0,.35) !important;
-}
-
-.admin-header{
-  background:var(--navy) !important;
-}
-
-.admin-tabs,
-.admin-panel{
-  background:#fff !important;
-}
-
-.admin-tabs{
-  border-bottom:1px solid #e1e5e8 !important;
-}
-
-.admin-tab{
-  color:#777 !important;
-}
-
-.admin-tab.active{
-  color:var(--navy) !important;
-  border-bottom-color:var(--navy) !important;
-}
-
-.admin-body{
-  background:#fff !important;
-}
-
-.section-title{
-  color:#444 !important;
-  border-bottom-color:#e5e7e9 !important;
-}
-
-.section-title span{
-  background:rgba(197,157,95,.12) !important;
-  color:var(--gold-dark) !important;
-}
-
-.stat-card,
-.user-row,
-.add-user-form,
-.blocked-list,
-.log-item{
-  background:#f8f9fa !important;
-  border-color:#e1e5e8 !important;
-}
-
-.stat-value,
-.user-row-info h4,
-.blocked-list-header h4{
-  color:#333 !important;
-}
-
-.stat-label,
-.user-row-info p,
-.blocked-reason,
-.blocked-date,
-.log-text,
-.log-time{
-  color:#7b8794 !important;
-}
-
-.admin-input{
-  background:#fff !important;
-  border:1px solid #d8dde2 !important;
-  color:#333 !important;
-}
-
-.admin-input:focus{
-  border-color:#80a9c7 !important;
-  box-shadow:0 0 0 2px rgba(31,78,121,.10) !important;
-}
-
-.admin-input::placeholder{
-  color:#a0a5aa !important;
-}
-
-.reset-pw-box{
-  background:#fff !important;
-  border:1px solid #e1e5e8 !important;
-}
-
-.reset-pw-box h3{
-  color:#333 !important;
-}
-
-::-webkit-scrollbar-thumb{
-  background:var(--navy) !important;
-}
-
-::-webkit-scrollbar-thumb:hover{
-  background:var(--navy-dark) !important;
-}
-
-@media(max-width:768px){
-  body{
-    padding:0 !important;
-  }
-  .login-container{
-    padding:20px 10px !important;
-  }
-}
-</style>
-
 </head>
 <body>
 
-<!-- ===== LOGIN ===== -->
-<div class="login-container" id="loginContainer">
-  <div class="login-box">
-    <div class="login-header">
-      <div class="login-logo">🔐</div>
-      <h2 class="login-title">Apni Chhat Mehfooz Chhat Login</h2>
-      <p class="login-subtitle">Secure Member Search System</p>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand">
+      <div class="brand-mark">RR</div>
+      <div class="brand-text">
+        <h1>ریکوری ریکارڈ تلاش</h1>
+        <p>Recovery Record Lookup &nbsp;·&nbsp; PM-YBLS</p>
+      </div>
     </div>
-    <div class="login-body">
-      <div class="alert alert-error" id="loginError"></div>
-      <div class="form-group">
-        <label class="form-label">Username</label>
-        <div class="input-wrapper">
-          <span class="input-icon">👤</span>
-          <input type="text" id="username" class="form-input" placeholder="Enter username" autocomplete="off">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <div class="input-wrapper">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="password" class="form-input" placeholder="Enter password">
-          <button class="password-toggle" onclick="togglePassword()"><span id="eyeIcon">👁️</span></button>
-        </div>
-      </div>
-      <div class="remember-me">
-        <input type="checkbox" id="rememberMe" checked>
-        <label for="rememberMe">Keep me logged in on this device</label>
-      </div>
-      <button class="btn-login" onclick="login()"><span id="loginBtnText">Login</span></button>
-    </div>
+    <div id="statusPill" class="status-pill"><span class="dot"></span><span id="statusText">شیٹ لوڈ ہو رہی ہے…</span></div>
   </div>
-</div>
+</header>
 
-<!-- ===== ADMIN PANEL MODAL ===== -->
-<div class="admin-modal" id="adminModal">
-  <div class="admin-panel">
-    <div class="admin-header">
-      <div class="admin-header-left">
-        <div class="admin-badge">⚙️</div>
-        <div>
-          <h2>Admin Control Panel</h2>
-          <p>Manage users, access, and security settings</p>
-        </div>
-      </div>
-      <button class="btn-close-admin" onclick="closeAdminPanel()">×</button>
-    </div>
-
-    <div class="admin-tabs">
-      <button class="admin-tab active" onclick="switchTab('overview')">📊 Overview</button>
-      <button class="admin-tab" onclick="switchTab('users')">👥 Users</button>
-      <button class="admin-tab" onclick="switchTab('dns')">🛡️ DNS Block</button>
-      <button class="admin-tab" onclick="switchTab('activity')">📋 Activity Log</button>
-    </div>
-
-    <div class="admin-body">
-
-      <!-- OVERVIEW TAB -->
-      <div class="tab-panel active" id="tab-overview">
-        <div class="stats-row" id="statsRow"></div>
-        <div class="section-title">🔐 Quick Actions <span>Admin Only</span></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
-          <button onclick="switchTab('users')" style="padding:16px;background:rgba(0,61,130,0.2);border:1px solid rgba(0,61,130,0.3);border-radius:12px;color:#93c5fd;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.9rem;transition:all 0.3s;">
-            👥 Manage Users
-          </button>
-          <button onclick="switchTab('dns')" style="padding:16px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.25);border-radius:12px;color:#fca5a5;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.9rem;transition:all 0.3s;">
-            🛡️ DNS Block Rules
-          </button>
-          <button onclick="switchTab('activity')" style="padding:16px;background:rgba(197,157,95,0.15);border:1px solid rgba(197,157,95,0.25);border-radius:12px;color:var(--gold);font-weight:700;cursor:pointer;font-family:inherit;font-size:0.9rem;transition:all 0.3s;">
-            📋 View Activity Log
-          </button>
-          <button onclick="exportUserReport()" style="padding:16px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25);border-radius:12px;color:#6ee7b7;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.9rem;transition:all 0.3s;">
-            📤 Export Report
-          </button>
-        </div>
-      </div>
-
-      <!-- USERS TAB -->
-      <div class="tab-panel" id="tab-users">
-        <div class="section-title">👥 User Accounts <span id="userCountBadge">0 users</span></div>
-        <div class="user-list" id="userList"></div>
-        <div class="add-user-form">
-          <h3>➕ Add New User</h3>
-          <div class="form-row">
-            <div>
-              <label style="color:#94a3b8;font-size:0.8rem;font-weight:600;margin-bottom:6px;display:block;text-transform:uppercase;">Username</label>
-              <input type="text" class="admin-input" id="newUsername" placeholder="username">
-            </div>
-            <div>
-              <label style="color:#94a3b8;font-size:0.8rem;font-weight:600;margin-bottom:6px;display:block;text-transform:uppercase;">Password</label>
-              <input type="text" class="admin-input" id="newPassword" placeholder="password">
-            </div>
-            <div>
-              <label style="color:#94a3b8;font-size:0.8rem;font-weight:600;margin-bottom:6px;display:block;text-transform:uppercase;">Role</label>
-              <select class="admin-input admin-select" id="newRole">
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-                <option value="demo">Demo</option>
-              </select>
-            </div>
-            <button class="btn-add-user" onclick="addUser()">➕ Add User</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- DNS BLOCK TAB -->
-      <div class="tab-panel" id="tab-dns">
-        <div class="dns-block-panel">
-          <div class="dns-info-bar">
-            <span>⚠️</span>
-            <span>DNS Block rules restrict specific domains or IPs from being associated with login sessions. Blocked entries are logged and flagged in activity.</span>
-          </div>
-          <div>
-            <div class="section-title">🚫 Add Block Rule <span>Admin Only</span></div>
-            <div class="dns-input-row">
-              <div class="dns-input-group" style="flex:2;">
-                <label>Domain / IP Address</label>
-                <input type="text" class="admin-input" id="dnsInput" placeholder="e.g. suspicious.com or 192.168.1.100">
-              </div>
-              <div class="dns-input-group" style="flex:1.5;">
-                <label>Reason</label>
-                <input type="text" class="admin-input" id="dnsReason" placeholder="e.g. Unauthorized access">
-              </div>
-              <button class="btn-add-dns" onclick="addDnsBlock()">🚫 Block</button>
-            </div>
-          </div>
-          <div class="blocked-list">
-            <div class="blocked-list-header">
-              <h4 style="color:white;">🛡️ Active Block Rules</h4>
-              <span class="blocked-count" id="blockedCount">0 blocked</span>
-            </div>
-            <div id="dnsBlockedList">
-              <div class="no-blocked">
-                <div class="no-blocked-icon">✅</div>
-                <div style="color:#64748b;font-size:0.9rem;">No block rules active</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACTIVITY LOG TAB -->
-      <div class="tab-panel" id="tab-activity">
-        <div id="syncStatusBar" style="display:none;padding:10px 14px;border-radius:10px;margin-bottom:16px;font-size:0.82rem;font-weight:600;"></div>
-
-        <div class="section-title">💻 Logged-in Devices / PCs <span id="deviceCountBadge">0 devices</span></div>
-        <div id="devicesList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:24px;">
-          <div style="text-align:center;padding:20px;color:#475569;grid-column:1/-1;">No device data yet</div>
-        </div>
-
-        <div class="section-title">📋 Recent Activity (All PCs) <span id="logCountBadge">0 events</span></div>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:15px;">
-          <button onclick="renderActivity()" style="padding:8px 16px;background:rgba(0,61,130,0.2);color:#93c5fd;border:1px solid rgba(0,61,130,0.3);border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.3s;">🔄 Refresh</button>
-          <button onclick="clearActivityLog()" style="padding:8px 16px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.3s;">🗑️ Clear Log</button>
-        </div>
-        <div class="log-list" id="activityLog">
-          <div style="text-align:center;padding:40px;color:#475569;">No activity yet</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- ===== RESET PASSWORD MODAL ===== -->
-<div class="reset-pw-modal" id="resetPwModal">
-  <div class="reset-pw-box">
-    <h3>🔑 Reset Password</h3>
-    <p style="color:#64748b;font-size:0.85rem;margin-bottom:20px;">Set a new password for <strong id="resetPwUser" style="color:#a78bfa;"></strong></p>
-    <input type="text" class="admin-input" id="resetPwInput" placeholder="Enter new password" style="margin-bottom:5px;">
-    <div class="reset-actions">
-      <button class="btn-confirm" onclick="confirmResetPassword()">✓ Save</button>
-      <button class="btn-cancel" onclick="closeResetPw()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SEARCH RESULT POPUP MODAL ===== -->
-<div class="result-modal" id="resultModal">
-  <div class="result-modal-box">
-    <div class="result-modal-header">
-      <div>
-        <h3>🔍 Search Results</h3>
-        <p id="resultModalSubtitle">0 record(s) found</p>
-      </div>
-      <button class="btn-close" onclick="closeResultPopup()">✕</button>
-    </div>
-    <div class="result-modal-body">
-      <div class="table-wrapper">
-        <table>
-          <tbody id="resultModalTable"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="result-modal-footer">
-      <button class="action-btn" onclick="copyResults()">📋 Copy</button>
-      <button class="action-btn" onclick="exportExcel()">📊 Excel</button>
-      <button class="action-btn" onclick="exportPDF()">📄 PDF</button>
-      <button class="action-btn" onclick="printResults()">🖨️ Print</button>
-      <button class="action-btn" onclick="closeResultPopup()">✅ Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== MAIN APP ===== -->
 <main>
   <section class="search-panel">
     <h2>CNIC یا Sanction Number سے تلاش کریں</h2>
@@ -1693,645 +336,20 @@ td:nth-child(2){
 </div>
 
 <script>
-
-<script>
-// =============================================
-// CONFIG — Google Sheet link unchanged
+  // ===== CONFIGURATION =====
+  // =============================================
+// CONFIG
 // =============================================
 const SHEET_ID = "1v9Y7EulDlF4xlsp_1WVsIsNeVWNrOEti";
 const SHEET_NAME = "Sheet1";
+const COLUMNS = ['Sr No','CNIC','Name','Contact','Branch Name','Branch Code','Batch'];
 
-// =============================================
-// CENTRAL ACTIVITY LOG API (Google Apps Script Web App)
-// Paste your deployed Web App URL here to enable
-// cross-PC activity + "who is logged in where" for Admin.
-// See DEPLOY_INSTRUCTIONS.md / activity-log-backend.gs
-// If left blank, the app falls back to this-PC-only logs.
-// =============================================
-const LOG_API_URL = ""; // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
-
-// =============================================
-// DEVICE FINGERPRINT (identifies "which PC" per browser)
-// =============================================
-function getDeviceId(){
-  let id = localStorage.getItem('acag_device_id');
-  if(!id){
-    id = 'dev-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
-    localStorage.setItem('acag_device_id', id);
-  }
-  return id;
-}
-function getDeviceLabel(){
-  const ua = navigator.userAgent;
-  let os = 'Unknown OS';
-  if(/Windows/i.test(ua)) os='Windows';
-  else if(/Mac OS X/i.test(ua)) os='macOS';
-  else if(/Android/i.test(ua)) os='Android';
-  else if(/iPhone|iPad|iOS/i.test(ua)) os='iOS';
-  else if(/Linux/i.test(ua)) os='Linux';
-  let browser = 'Browser';
-  if(/Edg\//i.test(ua)) browser='Edge';
-  else if(/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) browser='Chrome';
-  else if(/Firefox\//i.test(ua)) browser='Firefox';
-  else if(/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser='Safari';
-  return `${os} · ${browser} · ${screen.width}x${screen.height}`;
-}
-const DEVICE_ID = getDeviceId();
-const DEVICE_LABEL = getDeviceLabel();
-
-// =============================================
-// LOCAL DATA CACHE (IndexedDB) — avoids reconnecting
-// to Google Sheets on every load. Same sheet link,
-// data is fetched once then reused from the cache.
-// A silent background sync keeps it up to date.
-// =============================================
-const DB_NAME = 'acag_cache_db';
-const DB_STORE = 'sheet_cache';
-const CACHE_KEY = 'sheetData';
-const BACKGROUND_SYNC_INTERVAL = 5 * 60 * 1000; // re-check sheet every 5 min while app is open
-
-function openCacheDB(){
-  return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = ()=>{
-      const db = req.result;
-      if(!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE, {keyPath:'key'});
-    };
-    req.onsuccess = ()=>resolve(req.result);
-    req.onerror = ()=>reject(req.error);
-  });
-}
-
-async function getCachedSheetData(){
-  try{
-    const db = await openCacheDB();
-    return await new Promise((resolve,reject)=>{
-      const tx = db.transaction(DB_STORE,'readonly');
-      const store = tx.objectStore(DB_STORE);
-      const req = store.get(CACHE_KEY);
-      req.onsuccess = ()=>resolve(req.result || null);
-      req.onerror = ()=>reject(req.error);
-    });
-  }catch(e){
-    console.warn('Cache read failed, falling back to fresh load', e);
-    return null;
-  }
-}
-
-async function setCachedSheetData(data){
-  try{
-    const db = await openCacheDB();
-    return await new Promise((resolve,reject)=>{
-      const tx = db.transaction(DB_STORE,'readwrite');
-      const store = tx.objectStore(DB_STORE);
-      const req = store.put({key:CACHE_KEY, data, savedAt: Date.now()});
-      req.onsuccess = ()=>resolve(true);
-      req.onerror = ()=>reject(req.error);
-    });
-  }catch(e){
-    console.warn('Cache write failed', e);
-    return false;
-  }
-}
-
-// =============================================
-// USER STORE (persisted to localStorage)
-// =============================================
-function loadUsers(){
-  const stored = localStorage.getItem('acag_users_v2');
-  if(stored) return JSON.parse(stored);
-  // Default users
-  const defaults = [
-    {username:'admin', password:'acag2026', role:'admin', blocked:false, createdAt: new Date().toISOString()},
-    {username:'user',  password:'user123',  role:'user',  blocked:false, createdAt: new Date().toISOString()},
-    {username:'demo',  password:'demo123',  role:'demo',  blocked:false, createdAt: new Date().toISOString()}
-  ];
-  saveUsers(defaults);
-  return defaults;
-}
-function saveUsers(users){
-  localStorage.setItem('acag_users_v2', JSON.stringify(users));
-}
-let USERS = loadUsers();
-
-// =============================================
-// DNS BLOCK STORE
-// =============================================
-function loadDnsBlocks(){
-  const stored = localStorage.getItem('acag_dns_blocks');
-  return stored ? JSON.parse(stored) : [];
-}
-function saveDnsBlocks(blocks){
-  localStorage.setItem('acag_dns_blocks', JSON.stringify(blocks));
-}
-let DNS_BLOCKS = loadDnsBlocks();
-
-// =============================================
-// ACTIVITY LOG
-// =============================================
-function loadActivityLog(){
-  const stored = localStorage.getItem('acag_activity_log');
-  return stored ? JSON.parse(stored) : [];
-}
-function saveActivityLog(log){
-  localStorage.setItem('acag_activity_log', JSON.stringify(log.slice(-200))); // Keep last 200
-}
-let ACTIVITY_LOG = loadActivityLog();
-
-function logActivity(icon, message){
-  const entry = {
-    icon, message,
-    time: new Date().toLocaleString(),
-    ts: Date.now(),
-    user: currentUser || '(not logged in)',
-    role: currentUserRole || '-',
-    device: DEVICE_LABEL,
-    deviceId: DEVICE_ID
-  };
-  // Always keep a local copy (works offline / no backend configured)
-  ACTIVITY_LOG.unshift(entry);
-  saveActivityLog(ACTIVITY_LOG);
-  // Push to the shared backend so Admin sees activity from every PC
-  syncActivityToServer(entry);
-}
-
-function syncActivityToServer(entry){
-  if(!LOG_API_URL) return; // no backend configured yet
-  try{
-    // text/plain avoids a CORS preflight so Apps Script receives it reliably
-    fetch(LOG_API_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(entry)
-    }).catch(()=>{ /* offline / blocked — local log still saved */ });
-  }catch(e){ /* ignore */ }
-}
-
-async function fetchServerActivity(){
-  if(!LOG_API_URL) return null;
-  try{
-    const res = await fetch(LOG_API_URL + '?action=logs', {method:'GET'});
-    if(!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data) ? data : null;
-  }catch(e){ return null; }
-}
-
-// =============================================
-// STATE
-// =============================================
 let sheetData = [];
 let ready = false;
-let currentUser = null;
-let currentUserRole = null;
 let currentResults = [];
-let resetPwTarget = null;
 
 // =============================================
-// INIT
-// =============================================
-window.onload = () => {
-  const persistentUser = localStorage.getItem('acag_user_persistent');
-  if(persistentUser){
-    const u = USERS.find(x=>x.username===persistentUser);
-    if(u && !u.blocked){
-      currentUser = persistentUser;
-      currentUserRole = u.role;
-      showApp();
-      return;
-    }else{
-      localStorage.removeItem('acag_user_persistent');
-    }
-  }
-  const sessionUser = sessionStorage.getItem('acag_user');
-  if(sessionUser){
-    const u = USERS.find(x=>x.username===sessionUser);
-    if(u && !u.blocked){
-      currentUser = sessionUser;
-      currentUserRole = u.role;
-      showApp();
-      return;
-    }else{
-      sessionStorage.removeItem('acag_user');
-    }
-  }
-  document.getElementById('username').focus();
-};
-
-// =============================================
-// LOGIN / LOGOUT
-// =============================================
-function togglePassword(){
-  const input = document.getElementById('password');
-  const icon = document.getElementById('eyeIcon');
-  if(input.type==='password'){input.type='text';icon.textContent='🙈';}
-  else{input.type='password';icon.textContent='👁️';}
-}
-
-function login(){
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const rememberMe = document.getElementById('rememberMe').checked;
-  const errorEl = document.getElementById('loginError');
-  const btnText = document.getElementById('loginBtnText');
-
-  errorEl.classList.remove('show');
-  if(!username||!password){
-    errorEl.textContent='⚠️ Please enter both username and password';
-    errorEl.classList.add('show');return;
-  }
-
-  // Check DNS blocks (simulated — check if any block rule matches)
-  const ipOrHost = username; // symbolic check
-  const blocked = DNS_BLOCKS.find(b=>
-    username.toLowerCase().includes(b.domain.toLowerCase()) ||
-    b.domain.toLowerCase() === username.toLowerCase()
-  );
-  if(blocked){
-    logActivity('🚫',`Blocked login attempt by <strong>${username}</strong> (DNS rule: ${blocked.domain})`);
-    errorEl.textContent='🚫 Access denied. This account is blocked by security policy.';
-    errorEl.classList.add('show');return;
-  }
-
-  USERS = loadUsers();
-  const u = USERS.find(x=>x.username===username);
-  if(!u){
-    logActivity('❌',`Failed login attempt: unknown user <strong>${username}</strong>`);
-    errorEl.textContent='❌ Invalid username or password';
-    errorEl.classList.add('show');return;
-  }
-  if(u.blocked){
-    logActivity('🔒',`Blocked user tried to login: <strong>${username}</strong>`);
-    errorEl.textContent='🔒 This account has been blocked. Contact an administrator.';
-    errorEl.classList.add('show');return;
-  }
-  if(u.password!==password){
-    logActivity('⚠️',`Wrong password for <strong>${username}</strong>`);
-    errorEl.textContent='❌ Invalid username or password';
-    errorEl.classList.add('show');return;
-  }
-
-  btnText.textContent='✓ Logging in...';
-  logActivity('✅',`<strong>${username}</strong> logged in successfully`);
-  setTimeout(()=>{
-    currentUser=username;
-    currentUserRole=u.role;
-    if(rememberMe) localStorage.setItem('acag_user_persistent',username);
-    else sessionStorage.setItem('acag_user',username);
-    showApp();
-  },800);
-}
-
-function logout(){
-  if(!confirm('Are you sure you want to logout?')) return;
-  logActivity('🚪',`<strong>${currentUser}</strong> logged out`);
-  currentUser=null;currentUserRole=null;
-  localStorage.removeItem('acag_user_persistent');
-  sessionStorage.removeItem('acag_user');
-  document.getElementById('mainApp').classList.remove('active');
-  document.getElementById('loginContainer').classList.remove('hidden');
-  document.getElementById('username').value='';
-  document.getElementById('password').value='';
-  document.getElementById('loginBtnText').textContent='Login';
-  document.getElementById('loginError').classList.remove('show');
-}
-
-async function showApp(){
-  document.getElementById('loginContainer').classList.add('hidden');
-  document.getElementById('mainApp').classList.add('active');
-  const avatar=document.getElementById('userAvatar');
-  const display=document.getElementById('displayUsername');
-  const roleDisplay=document.getElementById('displayRole');
-  avatar.textContent=currentUser.charAt(0).toUpperCase();
-  display.textContent=currentUser.charAt(0).toUpperCase()+currentUser.slice(1);
-
-  if(currentUserRole==='admin'){
-    avatar.classList.add('admin-avatar');
-    roleDisplay.textContent='Administrator';
-    document.getElementById('adminPanelBtn').style.display='flex';
-  } else {
-    avatar.classList.remove('admin-avatar');
-    roleDisplay.textContent=currentUserRole==='demo'?'Demo Access':'Member Search Access';
-    document.getElementById('adminPanelBtn').style.display='none';
-  }
-
-  await loadData();
-  document.getElementById('cnicInput').focus();
-}
-
-document.addEventListener('keypress', e=>{
-  if(e.key==='Enter' && !document.getElementById('loginContainer').classList.contains('hidden')) login();
-});
-
-// =============================================
-// ADMIN PANEL
-// =============================================
-function openAdminPanel(){
-  if(currentUserRole!=='admin'){alert('Access denied');return;}
-  document.getElementById('adminModal').classList.add('active');
-  refreshAdminPanel();
-}
-function closeAdminPanel(){
-  document.getElementById('adminModal').classList.remove('active');
-}
-
-function switchTab(name){
-  document.querySelectorAll('.admin-tab').forEach((t,i)=>{
-    const tabs=['overview','users','dns','activity'];
-    t.classList.toggle('active', tabs[i]===name);
-  });
-  document.querySelectorAll('.tab-panel').forEach(p=>{
-    p.classList.toggle('active', p.id==='tab-'+name);
-  });
-  if(name==='overview') renderOverview();
-  if(name==='users') renderUsers();
-  if(name==='dns') renderDns();
-  if(name==='activity') renderActivity();
-}
-
-function refreshAdminPanel(){
-  const activeTab = document.querySelector('.admin-tab.active');
-  const tabs=['overview','users','dns','activity'];
-  const idx = [...document.querySelectorAll('.admin-tab')].indexOf(activeTab);
-  if(idx>=0) switchTab(tabs[idx]);
-  else switchTab('overview');
-}
-
-// --- OVERVIEW ---
-function renderOverview(){
-  USERS = loadUsers();
-  const totalUsers = USERS.length;
-  const blocked = USERS.filter(u=>u.blocked).length;
-  const admins = USERS.filter(u=>u.role==='admin').length;
-  const dns = DNS_BLOCKS.length;
-  document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-icon">👥</div>
-      <div class="stat-value">${totalUsers}</div>
-      <div class="stat-label">Total Users</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🔒</div>
-      <div class="stat-value" style="color:#f87171;">${blocked}</div>
-      <div class="stat-label">Blocked Users</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⚙️</div>
-      <div class="stat-value" style="color:#a78bfa;">${admins}</div>
-      <div class="stat-label">Admins</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🛡️</div>
-      <div class="stat-value" style="color:#fca5a5;">${dns}</div>
-      <div class="stat-label">DNS Rules</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-value" style="color:#fcd34d;">${ACTIVITY_LOG.length}</div>
-      <div class="stat-label">Log Events</div>
-    </div>
-  `;
-}
-
-// --- USERS ---
-function renderUsers(){
-  USERS = loadUsers();
-  document.getElementById('userCountBadge').textContent = USERS.length+' users';
-  const list = document.getElementById('userList');
-  list.innerHTML = USERS.map(u=>`
-    <div class="user-row" id="user-row-${u.username}">
-      <div class="user-row-avatar role-${u.role}">${u.username.charAt(0).toUpperCase()}</div>
-      <div class="user-row-info">
-        <h4>${u.username}</h4>
-        <p>${u.password}</p>
-      </div>
-      <div class="user-row-badges">
-        <span class="role-badge ${u.role}">${u.role}</span>
-        ${u.blocked?'<span class="role-badge blocked">Blocked</span>':''}
-      </div>
-      <div class="user-actions">
-        ${u.blocked
-          ?`<button class="btn-sm btn-unblock" onclick="toggleBlock('${u.username}',false)">✓ Unblock</button>`
-          :u.username!==currentUser
-            ?`<button class="btn-sm btn-block" onclick="toggleBlock('${u.username}',true)">🔒 Block</button>`
-            :''}
-        <button class="btn-sm btn-reset-pw" onclick="openResetPw('${u.username}')">🔑 Reset PW</button>
-        ${u.username!==currentUser?`<button class="btn-sm btn-delete" onclick="deleteUser('${u.username}')">🗑️ Delete</button>`:''}
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleBlock(username, block){
-  if(block && !confirm(`Block user "${username}"? They will be unable to login.`)) return;
-  USERS = loadUsers();
-  const u = USERS.find(x=>x.username===username);
-  if(!u) return;
-  u.blocked = block;
-  saveUsers(USERS);
-  logActivity(block?'🔒':'🔓', `Admin <strong>${currentUser}</strong> ${block?'blocked':'unblocked'} user <strong>${username}</strong>`);
-  renderUsers();
-  renderOverview();
-}
-
-function deleteUser(username){
-  if(!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
-  USERS = loadUsers();
-  USERS = USERS.filter(u=>u.username!==username);
-  saveUsers(USERS);
-  logActivity('🗑️',`Admin <strong>${currentUser}</strong> deleted user <strong>${username}</strong>`);
-  renderUsers();
-  renderOverview();
-}
-
-function addUser(){
-  const username = document.getElementById('newUsername').value.trim();
-  const password = document.getElementById('newPassword').value.trim();
-  const role = document.getElementById('newRole').value;
-  if(!username||!password){alert('Please enter username and password.');return;}
-  USERS = loadUsers();
-  if(USERS.find(u=>u.username===username)){alert('Username already exists!');return;}
-  USERS.push({username, password, role, blocked:false, createdAt:new Date().toISOString()});
-  saveUsers(USERS);
-  logActivity('➕',`Admin <strong>${currentUser}</strong> added new user <strong>${username}</strong> (${role})`);
-  document.getElementById('newUsername').value='';
-  document.getElementById('newPassword').value='';
-  renderUsers();
-  renderOverview();
-}
-
-// --- RESET PW ---
-function openResetPw(username){
-  resetPwTarget = username;
-  document.getElementById('resetPwUser').textContent = username;
-  document.getElementById('resetPwInput').value='';
-  document.getElementById('resetPwModal').classList.add('active');
-}
-function closeResetPw(){
-  resetPwTarget=null;
-  document.getElementById('resetPwModal').classList.remove('active');
-}
-function confirmResetPassword(){
-  const newPw = document.getElementById('resetPwInput').value.trim();
-  if(!newPw){alert('Please enter a new password.');return;}
-  USERS = loadUsers();
-  const u = USERS.find(x=>x.username===resetPwTarget);
-  if(u) u.password = newPw;
-  saveUsers(USERS);
-  logActivity('🔑',`Admin <strong>${currentUser}</strong> reset password for <strong>${resetPwTarget}</strong>`);
-  closeResetPw();
-  renderUsers();
-  alert(`✅ Password for "${resetPwTarget}" has been updated.`);
-}
-
-// --- DNS ---
-function renderDns(){
-  DNS_BLOCKS = loadDnsBlocks();
-  document.getElementById('blockedCount').textContent = DNS_BLOCKS.length+' blocked';
-  const list = document.getElementById('dnsBlockedList');
-  if(DNS_BLOCKS.length===0){
-    list.innerHTML=`<div class="no-blocked"><div class="no-blocked-icon">✅</div><div style="color:#64748b;font-size:0.9rem;">No block rules active</div></div>`;
-    return;
-  }
-  list.innerHTML = DNS_BLOCKS.map((b,i)=>`
-    <div class="blocked-item">
-      <span style="color:#f87171;font-size:1rem;">🚫</span>
-      <span class="blocked-domain">${b.domain}</span>
-      <span class="blocked-reason">${b.reason||'No reason given'}</span>
-      <span class="blocked-date">${b.date}</span>
-      <button class="btn-unblock-dns" onclick="removeDnsBlock(${i})">Remove</button>
-    </div>
-  `).join('');
-}
-
-function addDnsBlock(){
-  const domain = document.getElementById('dnsInput').value.trim();
-  const reason = document.getElementById('dnsReason').value.trim();
-  if(!domain){alert('Please enter a domain or IP to block.');return;}
-  DNS_BLOCKS = loadDnsBlocks();
-  if(DNS_BLOCKS.find(b=>b.domain===domain)){alert('This domain/IP is already blocked.');return;}
-  DNS_BLOCKS.push({domain, reason, date:new Date().toLocaleDateString(), addedBy:currentUser});
-  saveDnsBlocks(DNS_BLOCKS);
-  logActivity('🛡️',`Admin <strong>${currentUser}</strong> blocked domain/IP: <strong>${domain}</strong> — ${reason||'no reason'}`);
-  document.getElementById('dnsInput').value='';
-  document.getElementById('dnsReason').value='';
-  renderDns();
-  renderOverview();
-}
-
-function removeDnsBlock(index){
-  DNS_BLOCKS = loadDnsBlocks();
-  const removed = DNS_BLOCKS[index];
-  DNS_BLOCKS.splice(index,1);
-  saveDnsBlocks(DNS_BLOCKS);
-  logActivity('✅',`Admin <strong>${currentUser}</strong> removed DNS block for: <strong>${removed.domain}</strong>`);
-  renderDns();
-  renderOverview();
-}
-
-// --- ACTIVITY ---
-async function renderActivity(){
-  if(currentUserRole!=='admin'){return;} // admin-only view, per design
-  const statusBar = document.getElementById('syncStatusBar');
-  const list = document.getElementById('activityLog');
-  list.innerHTML='<div style="text-align:center;padding:30px;color:#475569;">Loading…</div>';
-
-  let entries = loadActivityLog(); // local fallback
-  let sourceIsServer = false;
-
-  if(LOG_API_URL){
-    const serverLogs = await fetchServerActivity();
-    if(serverLogs){
-      entries = serverLogs.sort((a,b)=>(b.ts||0)-(a.ts||0));
-      sourceIsServer = true;
-    }
-  }
-
-  // Status bar
-  statusBar.style.display='block';
-  if(!LOG_API_URL){
-    statusBar.style.background='rgba(245,158,11,0.15)';
-    statusBar.style.color='#fbbf24';
-    statusBar.style.border='1px solid rgba(245,158,11,0.3)';
-    statusBar.innerHTML='⚠️ Central log backend not configured — showing activity from <strong>this PC only</strong>. See DEPLOY_INSTRUCTIONS to enable all-PC visibility.';
-  }else if(sourceIsServer){
-    statusBar.style.background='rgba(16,185,129,0.15)';
-    statusBar.style.color='#6ee7b7';
-    statusBar.style.border='1px solid rgba(16,185,129,0.3)';
-    statusBar.innerHTML='✅ Connected to central log — showing activity from <strong>all PCs</strong>.';
-  }else{
-    statusBar.style.background='rgba(239,68,68,0.15)';
-    statusBar.style.color='#f87171';
-    statusBar.style.border='1px solid rgba(239,68,68,0.3)';
-    statusBar.innerHTML='❌ Could not reach central log server — showing local (this PC) activity only.';
-  }
-
-  // Devices panel
-  const devMap = new Map();
-  entries.forEach(e=>{
-    if(!e.deviceId) return;
-    const prev = devMap.get(e.deviceId);
-    if(!prev || (e.ts||0) > (prev.ts||0)){
-      devMap.set(e.deviceId, {device:e.device||'Unknown device', user:e.user||'-', role:e.role||'-', ts:e.ts||0, time:e.time||''});
-    }
-  });
-  const devicesList = document.getElementById('devicesList');
-  document.getElementById('deviceCountBadge').textContent = devMap.size+' devices';
-  if(devMap.size===0){
-    devicesList.innerHTML='<div style="text-align:center;padding:20px;color:#475569;grid-column:1/-1;">No device data yet</div>';
-  }else{
-    devicesList.innerHTML = Array.from(devMap.values()).sort((a,b)=>b.ts-a.ts).map(d=>`
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;">
-        <div style="color:#e2e8f0;font-weight:700;font-size:0.9rem;margin-bottom:4px;">💻 ${d.device}</div>
-        <div style="color:#a78bfa;font-size:0.82rem;margin-bottom:2px;">👤 ${d.user} (${d.role})</div>
-        <div style="color:#64748b;font-size:0.75rem;">Last active: ${d.time}</div>
-      </div>
-    `).join('');
-  }
-
-  // Activity list
-  document.getElementById('logCountBadge').textContent = entries.length+' events';
-  if(entries.length===0){
-    list.innerHTML='<div style="text-align:center;padding:40px;color:#475569;">No activity yet</div>';
-    return;
-  }
-  list.innerHTML = entries.map(e=>`
-    <div class="log-item">
-      <span class="log-icon">${e.icon||'•'}</span>
-      <span class="log-text">${e.message}${e.device?` <span style="color:#64748b;font-size:0.75rem;">— 💻 ${e.device}</span>`:''}</span>
-      <span class="log-time">${e.time}</span>
-    </div>
-  `).join('');
-}
-
-function clearActivityLog(){
-  const msg = LOG_API_URL
-    ? 'Clear activity logs? This clears the local copy on this PC. The shared central log (all PCs) is not deleted from here for safety.'
-    : 'Clear all activity logs on this PC?';
-  if(!confirm(msg)) return;
-  ACTIVITY_LOG=[];
-  saveActivityLog([]);
-  renderActivity();
-}
-
-function exportUserReport(){
-  if(typeof XLSX==='undefined'){alert('Export library not loaded.');return;}
-  USERS=loadUsers();
-  const ws=XLSX.utils.aoa_to_sheet([
-    ['Username','Role','Status','Created At'],
-    ...USERS.map(u=>[u.username,u.role,u.blocked?'Blocked':'Active',u.createdAt||'N/A'])
-  ]);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Users');
-  XLSX.writeFile(wb,`Apni_Chhat_Mehfooz_Chhat_User_Report_${Date.now()}.xlsx`);
-  logActivity('📤',`Admin <strong>${currentUser}</strong> exported user report`);
-}
-
-// =============================================
-// DATA LOADING — same Google Sheet, now cached
-// (loads instantly from IndexedDB after the first
-// time; refreshes quietly in the background so you
-// don't have to wait/reconnect every time)
+// CSV PARSE
 // =============================================
 function parseCSV(csv){
   const lines = csv.split("\n").filter(l => l.trim());
@@ -2350,154 +368,140 @@ function parseCSV(csv){
   return rows;
 }
 
-async function fetchWithTimeout(url, timeoutMs=15000){
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try{
-    const res = await fetch(url, {
-      method:'GET',
-      mode:'cors',
-      cache:'no-store',
-      credentials:'omit',
-      signal:controller.signal,
-      headers:{
-        'Accept':'text/csv,text/plain,*/*'
-      }
-    });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    if(!text || !text.trim()) throw new Error('Empty Google Sheet response');
-    return text;
-  }finally{
-    clearTimeout(timer);
-  }
-}
-
 async function fetchSheetCSV(){
-  const cacheBust = `_=${Date.now()}`;
-
-  // Primary: Google Visualization CSV endpoint
   const urls = [
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&${cacheBust}`,
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}&${cacheBust}`
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&_=${Date.now()}`,
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0&_=${Date.now()}`
   ];
 
   let lastError = null;
 
-  for(let attempt=0; attempt<3; attempt++){
-    for(const url of urls){
-      try{
-        const csv = await fetchWithTimeout(url, 15000);
-        // Google sometimes returns an HTML login/error page instead of CSV.
-        if(/^\s*<!doctype html|^\s*<html/i.test(csv)){
-          throw new Error('Google returned an HTML page instead of CSV data');
+  for (const url of urls) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const res = await fetch(url, {
+          method: "GET",
+          cache: "no-store",
+          mode: "cors",
+          signal: controller.signal
+        });
+
+        if (!res.ok) throw new Error(`Google Sheets HTTP ${res.status}`);
+
+        const text = await res.text();
+
+        // Google may return an HTML login/access page instead of CSV.
+        if (/^\s*<!doctype html/i.test(text) || /<html[\s>]/i.test(text)) {
+          throw new Error("Google Sheet returned an HTML/access page. Check sharing permissions.");
         }
-        return csv;
-      }catch(err){
+
+        if (!text.trim()) throw new Error("Google Sheet returned empty data.");
+
+        clearTimeout(timeoutId);
+        return text;
+      } catch (err) {
         lastError = err;
-        console.warn(`Google Sheet attempt ${attempt+1} failed:`, err);
+        clearTimeout(timeoutId);
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 700 * attempt));
+        }
       }
     }
-    await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
   }
 
-  throw lastError || new Error('Unable to load Google Sheet');
+  throw lastError || new Error("Unable to load Google Sheet.");
 }
 
-async function loadData(isBackground){
-  const badge = document.getElementById("statusBadge");
-  const info = document.getElementById("statusInfo");
-  try{
-    if(!isBackground){
-      badge.className = "badge loading";
-      badge.innerHTML = '<span class="spinner"></span><span>Connecting</span>';
-      info.textContent = "Connecting to Google Sheets…";
-    }
-    const start = performance.now();
+async function loadSheet(){
+  statusPill.classList.remove("ok", "err");
+  statusText.textContent = "شیٹ لوڈ ہو رہی ہے…";
+  resultsArea.innerHTML = `<div class="loading-state"><div class="spinner"></div>Google Sheet سے ڈیٹا لوڈ ہو رہا ہے…</div>`;
+
+  try {
     const csv = await fetchSheetCSV();
     const rows = parseCSV(csv);
-    const time = Math.round(performance.now() - start);
-    sheetData = rows;
-    ready = true;
-    const count = sheetData.length - 1;
-    badge.className = "badge success";
-    badge.innerHTML = '<span>✓</span><span>Connected</span>';
-    info.innerHTML = `<strong>${count.toLocaleString()}</strong> records loaded in <strong>${time}ms</strong>`;
-    setTimeout(() => { badge.innerHTML = `<span>✓</span><span>${count.toLocaleString()} Records</span>`; }, 2000);
-  }catch(err){
-    ready = false;
-    badge.className = "badge error";
-    if(err.name === 'AbortError'){
-      badge.innerHTML = '<span>⚠</span><span>Timeout</span>';
-      info.textContent = "Connection timed out after 30 seconds.";
-    }else{
-      badge.innerHTML = '<span>⚠</span><span>Failed</span>';
-      info.textContent = "Connection failed. Check sheet sharing (Anyone with link – Viewer) and press Refresh.";
-    }
-    console.error(err);
-  }
-}
 
-async function forceRefresh(){
-  const btn = document.getElementById('refreshBtn');
-  btn.disabled = true; btn.textContent = '🔄 Refreshing…';
-  await loadData(false);
-  btn.disabled = false; btn.textContent = '🔄 Refresh';
-}
+    if (!rows.length) throw new Error("No rows found.");
 
-  let allRows = [];      // raw parsed rows
-  let loaded = false;
-
-  const statusPill = document.getElementById('statusPill');
-  const statusText = document.getElementById('statusText');
-  const resultsArea = document.getElementById('resultsArea');
-  const resultsCount = document.getElementById('resultsCount');
-  const queryInput = document.getElementById('query');
-  const searchBtn = document.getElementById('searchBtn');
-
-  const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-
-  function parseSheetDate(str){
-    // expects "YYYY-Mon-DD" e.g. 2026-Sep-05
-    if(!str) return null;
-    const parts = String(str).split('-');
-    if(parts.length !== 3) return new Date(str);
-    const [y, mon, d] = parts;
-    const m = MONTHS[mon];
-    if(m === undefined) return new Date(str);
-    return new Date(parseInt(y), m, parseInt(d));
-  }
-
-  function formatDateDisplay(str){
-    const d = parseSheetDate(str);
-    if(!d || isNaN(d)) return str || '—';
-    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  }
-
-  function normalize(s){
-    return String(s || '').toLowerCase().replace(/[\s]/g, '');
-  }
-
-  function loadSheet(){
-    Papa.parse(CSV_URL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: function(results){
-        allRows = results.data.filter(r => r.sanction_no);
-        loaded = true;
-        statusPill.classList.add('ok');
-        statusText.textContent = `شیٹ لوڈ ہو گئی — ${allRows.length.toLocaleString()} اندراجات`;
-      },
-      error: function(err){
-        statusPill.classList.add('err');
-        statusText.textContent = 'شیٹ لوڈ نہیں ہو سکی — رسائی چیک کریں';
-        resultsArea.innerHTML = `<div class="empty-state ur">
-          شیٹ لوڈ کرنے میں مسئلہ ہوا۔ براہِ کرم یقینی بنائیں کہ Google Sheet کی شیئرنگ سیٹنگ
-          "Anyone with the link – Viewer" پر سیٹ ہے، پھر صفحہ ری لوڈ کریں۔</div>`;
-        console.error(err);
+    // Convert header names to the exact keys used by the search/UI.
+    const headers = rows[0].map(h => String(h || "").trim().toLowerCase());
+    const indexOf = (...names) => {
+      for (const name of names) {
+        const i = headers.indexOf(name.toLowerCase());
+        if (i !== -1) return i;
       }
-    });
+      return -1;
+    };
+
+    const iCNIC = indexOf("member_cnic", "cnic");
+    const iName = indexOf("member_name", "name");
+    const iSanction = indexOf("sanction_no", "sanction no", "sanction number");
+    const iProject = indexOf("project");
+    const iStatus = indexOf("status");
+    const iDate = indexOf("receive_date", "receive date", "date");
+    const iAmount = indexOf("amount", "fee amount");
+    const iSr = indexOf("sr no", "sr_no");
+    const iContact = indexOf("contact");
+    const iBranchName = indexOf("branch name", "branch_name");
+    const iBranchCode = indexOf("branch code", "branch_code");
+    const iBatch = indexOf("batch");
+
+    if (iCNIC === -1 || iSanction === -1) {
+      throw new Error(
+        "Required columns not found. Google Sheet must contain CNIC/member_cnic and Sanction No/sanction_no columns."
+      );
+    }
+
+    allRows = rows.slice(1)
+      .map(row => ({
+        sr_no: iSr >= 0 ? row[iSr] : "",
+        member_cnic: iCNIC >= 0 ? row[iCNIC] : "",
+        member_name: iName >= 0 ? row[iName] : "",
+        sanction_no: iSanction >= 0 ? row[iSanction] : "",
+        Project: iProject >= 0 ? row[iProject] : "",
+        Status: iStatus >= 0 ? row[iStatus] : "",
+        receive_date: iDate >= 0 ? row[iDate] : "",
+        amount: iAmount >= 0 ? row[iAmount] : "",
+        Contact: iContact >= 0 ? row[iContact] : "",
+        "Branch Name": iBranchName >= 0 ? row[iBranchName] : "",
+        "Branch Code": iBranchCode >= 0 ? row[iBranchCode] : "",
+        Batch: iBatch >= 0 ? row[iBatch] : ""
+      }))
+      .filter(r => String(r.sanction_no || "").trim());
+
+    loaded = true;
+    statusPill.classList.add("ok");
+    statusText.textContent = `شیٹ لوڈ ہو گئی — ${allRows.length.toLocaleString()} اندراجات`;
+
+    resultsArea.innerHTML = `<div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>`;
+  } catch (err) {
+    loaded = false;
+    statusPill.classList.add("err");
+    statusText.textContent = "شیٹ لوڈ نہیں ہو سکی";
+
+    resultsArea.innerHTML = `<div class="empty-state ur">
+      Google Sheet لوڈ نہیں ہو سکی۔<br>
+      <small>${escapeHtml(err.message || "Unknown error")}</small><br><br>
+      براہِ کرم Google Sheet کی Sharing کو <b>Anyone with the link → Viewer</b> کریں اور صفحہ دوبارہ کھولیں۔
+    </div>`;
+
+    console.error("Google Sheet load error:", err);
+  }
+}
+
+  // Compatibility functions for any existing refresh controls.
+  async function forceRefresh(){
+    await loadSheet();
+  }
+
+  // Start loading after the DOM is ready.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadSheet);
+  } else {
+    loadSheet();
   }
 
   function doSearch(){
@@ -2628,230 +632,6 @@ async function forceRefresh(){
   queryInput.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
-  loadSheet();
-</script>
-
-
-<script>
-/* Google Sheet loader safety net */
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const badge = document.getElementById('statusBadge');
-    if (badge && !ready && typeof loadData === 'function') {
-      loadData(false);
-    }
-  }, 300);
-});
-</script>
-
-</body>
-
-// =============================================
-// SEARCH
-// =============================================
-function search(){
-  if(!ready){showError("Database not loaded. Please wait...");return;}
-  const input=document.getElementById("cnicInput").value.trim();
-  const btn=document.getElementById("searchBtn");
-  const btnText=document.getElementById("btnText");
-  const count=document.getElementById("resultCount");
-  const cnic=input.replace(/\D/g,"");
-  if(cnic.length!==13){showError("Please enter a valid 13-digit CNIC");return;}
-  btn.disabled=true;btnText.textContent="⏳ Searching";showLoading();
-  requestAnimationFrame(()=>{
-    setTimeout(()=>{
-      try{
-        const start=performance.now();
-        const results=[];
-        const rows=sheetData.slice(1);
-        for(let i=0;i<rows.length;i++){
-          const rowCnic=rows[i][1].replace(/\D/g,"");
-          if(rowCnic===cnic) results.push(rows[i]);
-        }
-        const time=Math.round(performance.now()-start);
-        btn.disabled=false;btnText.textContent="🔍 Search";
-        if(results.length===0){
-          alert('❌ NO DATA FOUND\n\nThe CNIC you entered is not in the database.');
-          showNoResults();count.textContent="No results found";
-          logActivity('🔍',`<strong>${currentUser}</strong> searched CNIC: ${input} — No results`);
-        }else{
-          currentResults=results;showResults(results);
-          count.textContent=`${results.length} record(s) found in ${time}ms`;
-          openResultPopup(results,time);
-          logActivity('✅',`<strong>${currentUser}</strong> searched CNIC: ${input} — ${results.length} result(s) found`);
-        }
-      }catch(err){
-        btn.disabled=false;btnText.textContent="🔍 Search";
-        alert('❌ Search Error\n\nAn error occurred during search. Please try again.');
-        showError("Search failed. Please try again.");
-      }
-    },50);
-  });
-}
-
-// =============================================
-// DISPLAY
-// =============================================
-function showLoading(){
-  document.getElementById("results").innerHTML=`<tr><td colspan="7" class="state"><div class="loading-icon"></div><h3>Searching Database...</h3><p>Please wait</p></td></tr>`;
-}
-function showNoResults(){
-  document.getElementById("results").innerHTML=`<tr><td colspan="7" class="state"><div class="state-icon">❌</div><h3>No Results Found</h3><p>No matching CNIC found</p></td></tr>`;
-}
-function showError(msg){
-  document.getElementById("results").innerHTML=`<tr><td colspan="7" class="state"><div class="state-icon">⚠️</div><h3>Error</h3><p>${msg}</p></td></tr>`;
-  document.getElementById("resultCount").textContent="Error";
-}
-function showResults(results){
-  let html=`<tr><th>Sr No</th><th>CNIC</th><th>Name</th><th>Contact</th><th>Branch Name</th><th>Branch Code</th><th>Batch</th></tr>`;
-  results.forEach((r,i)=>{
-    html+=`<tr style="animation-delay:${i*0.05}s"><td>${r[0]||"-"}</td><td>${r[1]||"-"}</td><td>${r[2]||"-"}</td><td>${r[3]||"-"}</td><td>${r[4]||"-"}</td><td>${r[5]||"-"}</td><td>${r[6]||"-"}</td></tr>`;
-  });
-  document.getElementById("results").innerHTML=html;
-}
-
-// =============================================
-// RESULT POPUP (shows Header Row + Result Rows)
-// =============================================
-function openResultPopup(results,time){
-  const modal=document.getElementById("resultModal");
-  const table=document.getElementById("resultModalTable");
-  const subtitle=document.getElementById("resultModalSubtitle");
-
-  const labels=['Sr No','CNIC','Name','Contact','Branch Name','Branch Code','Batch'];
-
-  // Header Row — first cell blank, then one column per result
-  let html='<tr><th>Field</th>';
-  results.forEach((r,i)=>{html+=`<th>Result ${i+1}</th>`;});
-  html+='</tr>';
-
-  // Result Rows — each row is one field, transposed across all results
-  labels.forEach((label,idx)=>{
-    html+=`<tr><td><strong>${label}</strong></td>`;
-    results.forEach(r=>{html+=`<td>${r[idx]||"-"}</td>`;});
-    html+='</tr>';
-  });
-
-  table.innerHTML=html;
-
-  subtitle.textContent=time!==undefined
-    ? `${results.length} record(s) found in ${time}ms`
-    : `${results.length} record(s) found`;
-
-  modal.classList.add("active");
-}
-function closeResultPopup(){
-  document.getElementById("resultModal").classList.remove("active");
-}
-
-// =============================================
-// EXPORT
-// =============================================
-function copyResults(){
-  if(currentResults.length===0){alert('No results to copy');return;}
-  const headers=['Sr No','CNIC','Name','Contact','Branch Name','Branch Code','Batch'];
-  let text='';
-  headers.forEach((header,index)=>{
-    text+=header;
-    currentResults.forEach(r=>{text+='\t'+(r[index]||'-');});
-    text+='\n';
-  });
-  navigator.clipboard.writeText(text).then(()=>alert('✓ Results copied (transposed)')).catch(()=>alert('Failed to copy'));
-}
-function exportExcel(){
-  if(currentResults.length===0){alert('No results to export');return;}
-  const ws=XLSX.utils.aoa_to_sheet([['Sr No','CNIC','Applicant Name','Contact No','Branch Name','Branch Code','Batch No'],...currentResults]);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Apni Chhat Mehfooz Chhat Results');
-  XLSX.writeFile(wb,`Apni_Chhat_Mehfooz_Chhat_Search_Results_${Date.now()}.xlsx`);
-}
-function exportPDF(){
-  if(currentResults.length===0){alert('No results to export');return;}
-  const{jsPDF}=window.jspdf;const doc=new jsPDF();
-  doc.setFontSize(18);doc.text('Apni Chhat Mehfooz Chhat Member Search Results',14,20);
-  doc.setFontSize(10);doc.text(`Generated: ${new Date().toLocaleString()}`,14,28);
-  doc.autoTable({head:[['Sr No','CNIC','Name','Contact','Branch','Code','Batch']],body:currentResults.map(r=>[r[0],r[1],r[2],r[3],r[4],r[5],r[6]]),startY:35,styles:{fontSize:9}});
-  doc.save(`Apni_Chhat_Mehfooz_Chhat_Results_${Date.now()}.pdf`);
-}
-function printResults(){
-  if(currentResults.length===0){alert('No results to print');return;}
-  const w=window.open('','','height=600,width=800');
-  w.document.write('<html><head><title>Apni Chhat Mehfooz Chhat Search Results</title>');
-  w.document.write('<style>body{font-family:Arial;padding:20px;}h2{margin-bottom:10px;color:#003d82;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:12px;}th{background:#003d82;color:#c59d5f;}</style>');
-  w.document.write('</head><body><h2>Apni Chhat Mehfooz Chhat Member Search Results</h2>');
-  w.document.write(`<p>Generated: ${new Date().toLocaleString()}</p>`);
-  w.document.write('<table><thead><tr><th>Sr No</th><th>CNIC</th><th>Name</th><th>Contact</th><th>Branch Name</th><th>Branch Code</th><th>Batch</th></tr></thead><tbody>');
-  currentResults.forEach(r=>{w.document.write(`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`);});
-  w.document.write('</tbody></table>
-<script>
-/* Google Sheet loader safety net */
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const badge = document.getElementById('statusBadge');
-    if (badge && !ready && typeof loadData === 'function') {
-      loadData(false);
-    }
-  }, 300);
-});
-</script>
-
-</body></html>');
-  w.document.close();w.print();
-}
-function shareResults(){
-  if(currentResults.length===0){alert('No results to share');return;}
-  if(navigator.share){navigator.share({title:'Apni Chhat Mehfooz Chhat Search Results',text:`Found ${currentResults.length} record(s) in Apni Chhat Mehfooz Chhat database`}).catch(()=>{});}
-  else{alert('Share feature not supported in this browser');}
-}
-
-// =============================================
-// HELPERS
-// =============================================
-function fillCNIC(cnic){document.getElementById('cnicInput').value=formatCNIC(cnic);}
-function formatCNIC(cnic){
-  let f=cnic;
-  if(f.length>5) f=f.slice(0,5)+"-"+f.slice(5);
-  if(f.length>13) f=f.slice(0,13)+"-"+f.slice(13);
-  return f;
-}
-
-document.getElementById("cnicInput").addEventListener("input",e=>{
-  let v=e.target.value.replace(/\D/g,"").slice(0,13);
-  if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5);
-  if(v.length>13) v=v.slice(0,13)+"-"+v.slice(13);
-  e.target.value=v;
-});
-document.getElementById("cnicInput").addEventListener("keypress",e=>{if(e.key==="Enter")search();});
-document.getElementById("cnicInput").addEventListener("keydown",e=>{
-  if(e.key==="Escape"){
-    if(document.getElementById("resultModal").classList.contains("active")){
-      closeResultPopup();return;
-    }
-    e.target.value="";e.target.focus();
-    document.getElementById("results").innerHTML=`<tr><td colspan="7" class="state"><div class="state-icon">🔍</div><h3>Ready to Search</h3><p>Use any search method above</p></td></tr>`;
-    document.getElementById("resultCount").textContent="Ready to search";
-  }
-});
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape" && document.getElementById("resultModal").classList.contains("active")){
-    closeResultPopup();
-  }
-});
-document.getElementById("resultModal").addEventListener("click",e=>{
-  if(e.target.id==="resultModal") closeResultPopup();
-});
-</script>
-
-<script>
-/* Google Sheet loader safety net */
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const badge = document.getElementById('statusBadge');
-    if (badge && !ready && typeof loadData === 'function') {
-      loadData(false);
-    }
-  }, 300);
-});
 </script>
 
 </body>
