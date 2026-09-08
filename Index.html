@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recovery Record Lookup</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#F6F3EC;
+    --paper-2:#EFEAE0;
+    --ink:#1D2B27;
+    --ink-soft:#4C5A55;
+    --teal:#2E6B5A;
+    --teal-deep:#1F4E42;
+    --gold:#AD7B31;
+    --line:#D8D1BF;
+    --line-soft:#E5E0D3;
+    --white:#FFFEFB;
+    --danger:#9C4433;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', 'Noto Nastaliq Urdu', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .ur{ font-family:'Noto Nastaliq Urdu', serif; }
+  .num{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.2px; }
+
+  header.masthead{
+    border-bottom:1px solid var(--line);
+    background:var(--white);
+  }
+  .masthead-inner{
+    max-width:980px; margin:0 auto;
+    padding:28px 24px 22px;
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:12px;
+    direction:rtl;
+  }
+  .brand-mark{
+    width:38px; height:38px; border-radius:8px;
+    background:linear-gradient(155deg, var(--teal) 0%, var(--teal-deep) 100%);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--white); font-family:'Lora',serif; font-weight:700; font-size:17px;
+    flex-shrink:0;
+  }
+  .brand-text h1{
+    margin:0; font-family:'Noto Nastaliq Urdu', serif; font-weight:700;
+    font-size:24px; line-height:1.4; color:var(--ink);
+  }
+  .brand-text p{
+    margin:2px 0 0; font-size:12.5px; color:var(--ink-soft);
+    font-family:'IBM Plex Sans', sans-serif; letter-spacing:0.2px;
+  }
+  .status-pill{
+    font-size:11.5px; padding:6px 12px; border-radius:20px;
+    border:1px solid var(--line); color:var(--ink-soft);
+    background:var(--paper-2); white-space:nowrap;
+    font-family:'IBM Plex Sans', sans-serif;
+    display:flex; align-items:center; gap:6px;
+  }
+  .status-pill .dot{
+    width:7px; height:7px; border-radius:50%; background:#B3AA92; flex-shrink:0;
+  }
+  .status-pill.ok .dot{ background:var(--teal); }
+  .status-pill.err .dot{ background:var(--danger); }
+
+  main{ max-width:980px; margin:0 auto; padding:34px 24px 90px; }
+
+  .search-panel{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:26px 26px 22px;
+    box-shadow:0 1px 2px rgba(29,43,39,0.04);
+  }
+  .search-panel h2{
+    margin:0 0 4px; font-family:'Noto Nastaliq Urdu', serif; font-weight:600;
+    font-size:19px; direction:rtl; text-align:right;
+  }
+  .search-panel .hint{
+    margin:0 0 18px; font-size:13px; color:var(--ink-soft); direction:rtl; text-align:right;
+    font-family:'Noto Nastaliq Urdu', serif; line-height:2;
+  }
+  .search-row{
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+  #query{
+    flex:1 1 280px;
+    padding:13px 16px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-size:15px;
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--paper-2);
+    color:var(--ink);
+    direction:ltr;
+    text-align:left;
+  }
+  #query:focus{
+    outline:none; border-color:var(--teal); background:var(--white);
+  }
+  #query::placeholder{ color:#9AA39D; font-family:'IBM Plex Sans', sans-serif; }
+
+  button.primary{
+    padding:13px 26px;
+    background:var(--teal-deep);
+    color:var(--white);
+    border:none; border-radius:8px;
+    font-size:14.5px; font-weight:500;
+    font-family:'IBM Plex Sans', sans-serif;
+    cursor:pointer;
+    transition:background 0.15s ease;
+    white-space:nowrap;
+  }
+  button.primary:hover{ background:var(--teal); }
+  button.primary:active{ transform:translateY(1px); }
+
+  .results-header{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin:34px 0 12px; flex-wrap:wrap; gap:8px;
+    direction:rtl;
+  }
+  .results-header h3{
+    margin:0; font-family:'Noto Nastaliq Urdu', serif; font-weight:600; font-size:18px;
+  }
+  .results-count{
+    font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
+    direction:ltr;
+  }
+
+  table.results{
+    width:100%; border-collapse:collapse;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  table.results th{
+    text-align:right;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600; font-size:11.5px;
+    letter-spacing:0.3px;
+    color:var(--ink-soft);
+    background:var(--paper-2);
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  table.results td{
+    padding:13px 14px;
+    border-bottom:1px solid var(--line-soft);
+    font-size:14px;
+    text-align:right;
+    vertical-align:middle;
+  }
+  table.results tbody tr:last-child td{ border-bottom:none; }
+  table.results tbody tr:hover{ background:#FAF8F2; }
+  td.mono, th.mono{ text-align:left; direction:ltr; }
+  td.mono{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink); }
+  td.member-name{ font-family:'Noto Nastaliq Urdu', serif; font-size:15px; }
+
+  .status-tag{
+    display:inline-block; padding:3px 10px; border-radius:20px;
+    font-size:11px; font-family:'IBM Plex Sans', sans-serif; font-weight:500;
+    direction:ltr;
+  }
+  .status-tag.collected{ background:#E4EFE9; color:var(--teal-deep); }
+  .status-tag.other{ background:var(--paper-2); color:var(--ink-soft); }
+
+  button.view-btn{
+    padding:7px 14px;
+    background:var(--white);
+    color:var(--teal-deep);
+    border:1.3px solid var(--teal);
+    border-radius:7px;
+    font-size:12.5px; font-weight:500;
+    font-family:'IBM Plex Sans', sans-serif;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:all 0.15s ease;
+  }
+  button.view-btn:hover{ background:var(--teal); color:var(--white); }
+
+  .empty-state, .loading-state{
+    text-align:center; padding:50px 20px; color:var(--ink-soft);
+    font-family:'Noto Nastaliq Urdu', serif; font-size:15px;
+    background:var(--white); border:1px dashed var(--line); border-radius:10px;
+  }
+  .loading-state .spinner{
+    width:22px; height:22px; margin:0 auto 14px;
+    border:2.5px solid var(--line);
+    border-top-color:var(--teal);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* Modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(29,43,39,0.45);
+    display:none; align-items:center; justify-content:center;
+    padding:24px; z-index:50;
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal{
+    background:var(--white); border-radius:12px;
+    max-width:560px; width:100%; max-height:82vh;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 12px 40px rgba(29,43,39,0.25);
+  }
+  .modal-head{
+    padding:22px 24px 16px; border-bottom:1px solid var(--line);
+    direction:rtl;
+  }
+  .modal-head h4{
+    margin:0 0 6px; font-family:'Noto Nastaliq Urdu', serif; font-weight:600; font-size:18px;
+  }
+  .modal-head .sub{
+    font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
+    direction:ltr; text-align:left;
+  }
+  .modal-close{
+    position:absolute; top:18px; left:20px;
+    width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--line); background:var(--paper-2);
+    color:var(--ink-soft); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-close:hover{ background:var(--line-soft); }
+  .modal-body{ padding:16px 24px 22px; overflow-y:auto; }
+  table.ledger{ width:100%; border-collapse:collapse; }
+  table.ledger th{
+    text-align:right; font-size:11px; font-weight:600; color:var(--ink-soft);
+    padding:8px 6px; border-bottom:1.5px solid var(--line);
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  table.ledger td{
+    padding:9px 6px; border-bottom:1px solid var(--line-soft); font-size:13.5px;
+    text-align:right;
+  }
+  table.ledger td.mono{ font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:left; }
+  .ledger-total{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:14px; padding-top:14px; border-top:1.5px solid var(--line);
+    direction:rtl;
+  }
+  .ledger-total .label{ font-family:'Noto Nastaliq Urdu', serif; font-size:14.5px; }
+  .ledger-total .value{ font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:600; color:var(--teal-deep); direction:ltr; }
+
+  footer{
+    text-align:center; padding:24px; color:#A79E8A; font-size:11.5px;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+
+  @media (max-width: 640px){
+    table.results thead{ display:none; }
+    table.results, table.results tbody, table.results tr, table.results td{ display:block; width:100%; }
+    table.results tr{ padding:14px; border-bottom:1px solid var(--line); }
+    table.results td{ border:none; padding:4px 0; text-align:right; }
+    table.results td::before{
+      content: attr(data-label);
+      display:block; font-size:10.5px; color:var(--ink-soft);
+      font-family:'IBM Plex Sans', sans-serif; margin-bottom:2px;
+    }
+    td.view-cell{ padding-top:10px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand">
+      <div class="brand-mark">RR</div>
+      <div class="brand-text">
+        <h1>ریکوری ریکارڈ تلاش</h1>
+        <p>Recovery Record Lookup &nbsp;·&nbsp; PM-YBLS</p>
+      </div>
+    </div>
+    <div id="statusPill" class="status-pill"><span class="dot"></span><span id="statusText">شیٹ لوڈ ہو رہی ہے…</span></div>
+  </div>
+</header>
+
+<main>
+  <section class="search-panel">
+    <h2>CNIC یا Sanction Number سے تلاش کریں</h2>
+    <p class="hint">ممبر کا شناختی کارڈ نمبر (CNIC) یا سینکشن نمبر درج کریں۔ ہر سینکشن صرف ایک بار نتیجے میں دکھایا جائے گا۔</p>
+    <div class="search-row">
+      <input type="text" id="query" placeholder="e.g. 38201-1088010-5  or  3402-D027-00241" autocomplete="off">
+      <button class="primary" id="searchBtn">تلاش کریں</button>
+    </div>
+  </section>
+
+  <div class="results-header">
+    <h3>نتائج</h3>
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+
+  <div id="resultsArea">
+    <div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>
+  </div>
+</main>
+
+<footer>Data source: connected Google Sheet · read-only lookup</footer>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-close" id="modalClose">✕</button>
+      <h4 id="modalTitle">ریکارڈ کی تفصیل</h4>
+      <div class="sub" id="modalSub"></div>
+    </div>
+    <div class="modal-body">
+      <table class="ledger">
+        <thead>
+          <tr><th>Receive Date</th><th>Amount</th><th>Status</th></tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+      <div class="ledger-total">
+        <span class="label">مجموعی وصولی</span>
+        <span class="value" id="ledgerTotal"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== CONFIGURATION =====
+  // Google Sheet ID (extracted from the shared link).
+  const SHEET_ID = "1TuWd8eUVmcX4PJdgNX6KEUXHOZGmSml3";
+  // gid = 0 targets the first sheet/tab. Change if your data lives on another tab.
+  const SHEET_GID = "0";
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+  let allRows = [];      // raw parsed rows
+  let loaded = false;
+
+  const statusPill = document.getElementById('statusPill');
+  const statusText = document.getElementById('statusText');
+  const resultsArea = document.getElementById('resultsArea');
+  const resultsCount = document.getElementById('resultsCount');
+  const queryInput = document.getElementById('query');
+  const searchBtn = document.getElementById('searchBtn');
+
+  const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+
+  function parseSheetDate(str){
+    // expects "YYYY-Mon-DD" e.g. 2026-Sep-05
+    if(!str) return null;
+    const parts = String(str).split('-');
+    if(parts.length !== 3) return new Date(str);
+    const [y, mon, d] = parts;
+    const m = MONTHS[mon];
+    if(m === undefined) return new Date(str);
+    return new Date(parseInt(y), m, parseInt(d));
+  }
+
+  function formatDateDisplay(str){
+    const d = parseSheetDate(str);
+    if(!d || isNaN(d)) return str || '—';
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function normalize(s){
+    return String(s || '').toLowerCase().replace(/[\s]/g, '');
+  }
+
+  function loadSheet(){
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results){
+        allRows = results.data.filter(r => r.sanction_no);
+        loaded = true;
+        statusPill.classList.add('ok');
+        statusText.textContent = `شیٹ لوڈ ہو گئی — ${allRows.length.toLocaleString()} اندراجات`;
+      },
+      error: function(err){
+        statusPill.classList.add('err');
+        statusText.textContent = 'شیٹ لوڈ نہیں ہو سکی — رسائی چیک کریں';
+        resultsArea.innerHTML = `<div class="empty-state ur">
+          شیٹ لوڈ کرنے میں مسئلہ ہوا۔ براہِ کرم یقینی بنائیں کہ Google Sheet کی شیئرنگ سیٹنگ
+          "Anyone with the link – Viewer" پر سیٹ ہے، پھر صفحہ ری لوڈ کریں۔</div>`;
+        console.error(err);
+      }
+    });
+  }
+
+  function doSearch(){
+    const raw = queryInput.value.trim();
+    if(!raw){
+      resultsArea.innerHTML = `<div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>`;
+      resultsCount.textContent = '';
+      return;
+    }
+    if(!loaded){
+      resultsArea.innerHTML = `<div class="loading-state"><div class="spinner"></div>شیٹ ابھی لوڈ ہو رہی ہے، براہِ کرم انتظار کریں…</div>`;
+      setTimeout(doSearch, 500);
+      return;
+    }
+
+    const q = normalize(raw);
+    const matches = allRows.filter(r =>
+      normalize(r.member_cnic).includes(q) || normalize(r.sanction_no).includes(q)
+    );
+
+    // group by sanction_no, keep one representative row per sanction
+    const groups = new Map();
+    for(const r of matches){
+      if(!groups.has(r.sanction_no)){
+        groups.set(r.sanction_no, { rep: r, records: [] });
+      }
+      groups.get(r.sanction_no).records.push(r);
+    }
+
+    renderResults(groups);
+  }
+
+  function renderResults(groups){
+    const entries = Array.from(groups.entries());
+    resultsCount.textContent = `${entries.length} unique sanction${entries.length===1?'':'s'} · ${Array.from(groups.values()).reduce((a,g)=>a+g.records.length,0)} total entries`;
+
+    if(entries.length === 0){
+      resultsArea.innerHTML = `<div class="empty-state ur">اس CNIC یا Sanction Number کے خلاف کوئی ریکارڈ نہیں ملا۔</div>`;
+      return;
+    }
+
+    let html = `<table class="results">
+      <thead>
+        <tr>
+          <th class="mono">Sanction No</th>
+          <th>Member Name</th>
+          <th class="mono">CNIC</th>
+          <th>Project</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    entries.forEach(([sanctionNo, group], idx) => {
+      const r = group.rep;
+      const statusClass = (r.Status || '').toLowerCase().includes('collect') ? 'collected' : 'other';
+      html += `
+        <tr>
+          <td class="mono" data-label="Sanction No">${escapeHtml(sanctionNo)}</td>
+          <td class="member-name" data-label="Member Name">${escapeHtml(r.member_name)}</td>
+          <td class="mono" data-label="CNIC">${escapeHtml(r.member_cnic)}</td>
+          <td data-label="Project">${escapeHtml(shortProject(r.Project))}</td>
+          <td data-label="Status"><span class="status-tag ${statusClass}">${escapeHtml(r.Status || '—')}</span></td>
+          <td class="view-cell" data-label=""><button class="view-btn" data-idx="${idx}">ریکارڈ دیکھیں</button></td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    resultsArea.innerHTML = html;
+
+    // wire up view buttons
+    resultsArea.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const [sanctionNo, group] = entries[parseInt(btn.dataset.idx)];
+        openModal(sanctionNo, group);
+      });
+    });
+  }
+
+  function shortProject(p){
+    if(!p) return '—';
+    const m = p.match(/\(([^)]+)\)/);
+    return m ? m[1] : p;
+  }
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ===== Modal (shows the hidden receive_date / amount columns) =====
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalSub = document.getElementById('modalSub');
+  const ledgerBody = document.getElementById('ledgerBody');
+  const ledgerTotal = document.getElementById('ledgerTotal');
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', e => { if(e.target === modalBackdrop) closeModal(); });
+
+  function openModal(sanctionNo, group){
+    const rep = group.rep;
+    modalTitle.textContent = `${rep.member_name} — وصولی کی تفصیل`;
+    modalSub.textContent = `Sanction: ${sanctionNo}  ·  CNIC: ${rep.member_cnic}`;
+
+    const sorted = [...group.records].sort((a,b) => parseSheetDate(b.receive_date) - parseSheetDate(a.receive_date));
+    let total = 0;
+    ledgerBody.innerHTML = sorted.map(r => {
+      const amt = parseFloat(r.amount) || 0;
+      total += amt;
+      const statusClass = (r.Status || '').toLowerCase().includes('collect') ? 'collected' : 'other';
+      return `<tr>
+        <td class="mono">${formatDateDisplay(r.receive_date)}</td>
+        <td class="mono">${amt.toLocaleString()}</td>
+        <td><span class="status-tag ${statusClass}">${escapeHtml(r.Status || '—')}</span></td>
+      </tr>`;
+    }).join('');
+    ledgerTotal.textContent = total.toLocaleString();
+
+    modalBackdrop.classList.add('open');
+  }
+
+  function closeModal(){
+    modalBackdrop.classList.remove('open');
+  }
+
+  // ===== Events =====
+  searchBtn.addEventListener('click', doSearch);
+  queryInput.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+  loadSheet();
+</script>
+
+</body>
+</html>
