@@ -265,6 +265,55 @@
     font-family:'IBM Plex Sans', sans-serif;
   }
 
+  /* Sheet load status viewer */
+  .sheet-status{
+    display:flex; align-items:center; gap:14px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-right:4px solid #B3AA92;
+    border-radius:10px;
+    padding:16px 20px;
+    margin-bottom:22px;
+    direction:rtl;
+    transition:background 0.25s ease, border-color 0.25s ease;
+  }
+  .sheet-status.loading{ border-right-color:var(--gold); }
+  .sheet-status.ok{ border-right-color:var(--teal); background:#F3F8F5; }
+  .sheet-status.err{ border-right-color:var(--danger); background:#FBF3F1; }
+
+  .sheet-status .icon{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--paper-2); font-size:16px;
+  }
+  .sheet-status.loading .icon{
+    border:2.5px solid var(--line); border-top-color:var(--gold);
+    animation:spin 0.8s linear infinite; background:transparent;
+  }
+  .sheet-status.ok .icon{ background:var(--teal); color:var(--white); }
+  .sheet-status.err .icon{ background:var(--danger); color:var(--white); }
+
+  .sheet-status .body{ flex:1; min-width:0; }
+  .sheet-status .title{
+    font-family:'Noto Nastaliq Urdu', serif; font-size:15px; font-weight:600;
+    color:var(--ink); margin:0 0 2px;
+  }
+  .sheet-status .sub{
+    font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
+    direction:ltr; text-align:right; margin:0;
+  }
+  .sheet-status .sub.ur-sub{ font-family:'Noto Nastaliq Urdu', serif; direction:rtl; text-align:right; }
+  .sheet-status .actions{ flex-shrink:0; }
+  .sheet-status button.retry-btn{
+    padding:8px 16px; background:var(--white); border:1.3px solid var(--danger);
+    color:var(--danger); border-radius:7px; font-size:12.5px; cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .sheet-status button.retry-btn:hover{ background:var(--danger); color:var(--white); }
+  .sheet-status a.sheet-link{
+    color:var(--teal-deep); text-decoration:underline; font-family:'IBM Plex Sans', sans-serif; font-size:12px;
+  }
+
   @media (max-width: 640px){
     table.results thead{ display:none; }
     table.results, table.results tbody, table.results tr, table.results td{ display:block; width:100%; }
@@ -295,6 +344,15 @@
 </header>
 
 <main>
+  <div class="sheet-status loading" id="sheetStatus">
+    <div class="icon" id="sheetStatusIcon"></div>
+    <div class="body">
+      <p class="title" id="sheetStatusTitle">Google Sheet لوڈ ہو رہی ہے…</p>
+      <p class="sub" id="sheetStatusSub">Connecting…</p>
+    </div>
+    <div class="actions" id="sheetStatusActions"></div>
+  </div>
+
   <section class="search-panel">
     <h2>CNIC یا Sanction Number سے تلاش کریں</h2>
     <p class="hint">ممبر کا شناختی کارڈ نمبر (CNIC) یا سینکشن نمبر درج کریں۔ ہر سینکشن صرف ایک بار نتیجے میں دکھایا جائے گا۔</p>
@@ -379,7 +437,45 @@
     return String(s || '').toLowerCase().replace(/[\s]/g, '');
   }
 
+  const sheetStatus = document.getElementById('sheetStatus');
+  const sheetStatusIcon = document.getElementById('sheetStatusIcon');
+  const sheetStatusTitle = document.getElementById('sheetStatusTitle');
+  const sheetStatusSub = document.getElementById('sheetStatusSub');
+  const sheetStatusActions = document.getElementById('sheetStatusActions');
+  const SHEET_VIEW_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit?usp=sharing";
+
+  function setSheetStatus(state, opts){
+    opts = opts || {};
+    sheetStatus.className = 'sheet-status ' + state;
+    if(state === 'loading'){
+      sheetStatusIcon.textContent = '';
+      sheetStatusTitle.textContent = 'Google Sheet لوڈ ہو رہی ہے…';
+      sheetStatusSub.textContent = 'Connecting to spreadsheet…';
+      sheetStatusSub.className = 'sub';
+      sheetStatusActions.innerHTML = '';
+    } else if(state === 'ok'){
+      sheetStatusIcon.textContent = '✓';
+      sheetStatusTitle.textContent = 'شیٹ کامیابی سے لوڈ ہو گئی';
+      const now = new Date();
+      sheetStatusSub.textContent = `${opts.count.toLocaleString()} records · loaded at ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+      sheetStatusSub.className = 'sub';
+      sheetStatusActions.innerHTML = `<a class="sheet-link" href="${SHEET_VIEW_URL}" target="_blank" rel="noopener">شیٹ دیکھیں</a>`;
+    } else if(state === 'err'){
+      sheetStatusIcon.textContent = '!';
+      sheetStatusTitle.textContent = 'شیٹ لوڈ نہیں ہو سکی — رسائی چیک کریں';
+      sheetStatusSub.innerHTML = '';
+      sheetStatusSub.textContent = 'یقینی بنائیں کہ شیئرنگ "Anyone with the link – Viewer" پر سیٹ ہے۔';
+      sheetStatusSub.className = 'sub ur-sub';
+      sheetStatusActions.innerHTML = `<button class="retry-btn" id="retryBtn">دوبارہ کوشش کریں</button>`;
+      document.getElementById('retryBtn').addEventListener('click', loadSheet);
+    }
+  }
+
   function loadSheet(){
+    setSheetStatus('loading');
+    statusPill.className = 'status-pill';
+    statusText.textContent = 'شیٹ لوڈ ہو رہی ہے…';
+
     Papa.parse(CSV_URL, {
       download: true,
       header: true,
@@ -389,13 +485,16 @@
         loaded = true;
         statusPill.classList.add('ok');
         statusText.textContent = `شیٹ لوڈ ہو گئی — ${allRows.length.toLocaleString()} اندراجات`;
+        setSheetStatus('ok', { count: allRows.length });
       },
       error: function(err){
+        loaded = false;
         statusPill.classList.add('err');
         statusText.textContent = 'شیٹ لوڈ نہیں ہو سکی — رسائی چیک کریں';
+        setSheetStatus('err');
         resultsArea.innerHTML = `<div class="empty-state ur">
           شیٹ لوڈ کرنے میں مسئلہ ہوا۔ براہِ کرم یقینی بنائیں کہ Google Sheet کی شیئرنگ سیٹنگ
-          "Anyone with the link – Viewer" پر سیٹ ہے، پھر صفحہ ری لوڈ کریں۔</div>`;
+          "Anyone with the link – Viewer" پر سیٹ ہے، پھر "دوبارہ کوشش کریں" دبائیں۔</div>`;
         console.error(err);
       }
     });
