@@ -1,637 +1,180 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="en">
 <head>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACAG Login</title>
+<style>
   :root{
-    --paper:#F6F3EC;
-    --paper-2:#EFEAE0;
-    --ink:#1D2B27;
-    --ink-soft:#4C5A55;
-    --teal:#2E6B5A;
-    --teal-deep:#1F4E42;
-    --gold:#AD7B31;
-    --line:#D8D1BF;
-    --line-soft:#E5E0D3;
-    --white:#FFFEFB;
-    --danger:#9C4433;
+    --bg:#12161c;
+    --panel:#1b212b;
+    --line:#2a3140;
+    --text:#e7ebf0;
+    --muted:#8a93a3;
+    --accent:#4f8cff;
+    --danger:#ff5c5c;
   }
-
-  *{ box-sizing:border-box; }
-
-  html,body{
-    margin:0; padding:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'IBM Plex Sans', 'Noto Nastaliq Urdu', sans-serif;
-    -webkit-font-smoothing:antialiased;
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);
   }
-
-  .ur{ font-family:'Noto Nastaliq Urdu', serif; }
-  .num{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.2px; }
-
-  header.masthead{
-    border-bottom:1px solid var(--line);
-    background:var(--white);
-  }
-  .masthead-inner{
-    max-width:980px; margin:0 auto;
-    padding:28px 24px 22px;
-    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
-    flex-wrap:wrap;
-  }
-  .brand{
-    display:flex; align-items:baseline; gap:12px;
-    direction:rtl;
-  }
-  .brand-mark{
-    width:38px; height:38px; border-radius:8px;
-    background:linear-gradient(155deg, var(--teal) 0%, var(--teal-deep) 100%);
-    display:flex; align-items:center; justify-content:center;
-    color:var(--white); font-family:'Lora',serif; font-weight:700; font-size:17px;
-    flex-shrink:0;
-  }
-  .brand-text h1{
-    margin:0; font-family:'Noto Nastaliq Urdu', serif; font-weight:700;
-    font-size:24px; line-height:1.4; color:var(--ink);
-  }
-  .brand-text p{
-    margin:2px 0 0; font-size:12.5px; color:var(--ink-soft);
-    font-family:'IBM Plex Sans', sans-serif; letter-spacing:0.2px;
-  }
-  .status-pill{
-    font-size:11.5px; padding:6px 12px; border-radius:20px;
-    border:1px solid var(--line); color:var(--ink-soft);
-    background:var(--paper-2); white-space:nowrap;
-    font-family:'IBM Plex Sans', sans-serif;
-    display:flex; align-items:center; gap:6px;
-  }
-  .status-pill .dot{
-    width:7px; height:7px; border-radius:50%; background:#B3AA92; flex-shrink:0;
-  }
-  .status-pill.ok .dot{ background:var(--teal); }
-  .status-pill.err .dot{ background:var(--danger); }
-
-  main{ max-width:980px; margin:0 auto; padding:34px 24px 90px; }
-
-  .search-panel{
-    background:var(--white);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:26px 26px 22px;
-    box-shadow:0 1px 2px rgba(29,43,39,0.04);
-  }
-  .search-panel h2{
-    margin:0 0 4px; font-family:'Noto Nastaliq Urdu', serif; font-weight:600;
-    font-size:19px; direction:rtl; text-align:right;
-  }
-  .search-panel .hint{
-    margin:0 0 18px; font-size:13px; color:var(--ink-soft); direction:rtl; text-align:right;
-    font-family:'Noto Nastaliq Urdu', serif; line-height:2;
-  }
-  .search-row{
-    display:flex; gap:10px; flex-wrap:wrap;
-  }
-  #query{
-    flex:1 1 280px;
-    padding:13px 16px;
-    border:1.5px solid var(--line);
-    border-radius:8px;
-    font-size:15px;
-    font-family:'IBM Plex Mono', monospace;
-    background:var(--paper-2);
-    color:var(--ink);
-    direction:ltr;
-    text-align:left;
-  }
-  #query:focus{
-    outline:none; border-color:var(--teal); background:var(--white);
-  }
-  #query::placeholder{ color:#9AA39D; font-family:'IBM Plex Sans', sans-serif; }
-
-  button.primary{
-    padding:13px 26px;
-    background:var(--teal-deep);
-    color:var(--white);
-    border:none; border-radius:8px;
-    font-size:14.5px; font-weight:500;
-    font-family:'IBM Plex Sans', sans-serif;
-    cursor:pointer;
-    transition:background 0.15s ease;
-    white-space:nowrap;
-  }
-  button.primary:hover{ background:var(--teal); }
-  button.primary:active{ transform:translateY(1px); }
-
-  .results-header{
-    display:flex; justify-content:space-between; align-items:baseline;
-    margin:34px 0 12px; flex-wrap:wrap; gap:8px;
-    direction:rtl;
-  }
-  .results-header h3{
-    margin:0; font-family:'Noto Nastaliq Urdu', serif; font-weight:600; font-size:18px;
-  }
-  .results-count{
-    font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
-    direction:ltr;
-  }
-
-  table.results{
-    width:100%; border-collapse:collapse;
-    background:var(--white);
+  .card{
+    width:100%;
+    max-width:360px;
+    background:var(--panel);
     border:1px solid var(--line);
     border-radius:10px;
-    overflow:hidden;
+    padding:32px;
   }
-  table.results th{
-    text-align:right;
-    font-family:'IBM Plex Sans', sans-serif;
-    font-weight:600; font-size:11.5px;
-    letter-spacing:0.3px;
-    color:var(--ink-soft);
-    background:var(--paper-2);
-    padding:12px 14px;
-    border-bottom:1px solid var(--line);
+  .card h1{
+    font-size:20px;
+    margin:0 0 4px;
   }
-  table.results td{
-    padding:13px 14px;
-    border-bottom:1px solid var(--line-soft);
+  .card p.sub{
+    margin:0 0 24px;
+    color:var(--muted);
     font-size:14px;
-    text-align:right;
-    vertical-align:middle;
   }
-  table.results tbody tr:last-child td{ border-bottom:none; }
-  table.results tbody tr:hover{ background:#FAF8F2; }
-  td.mono, th.mono{ text-align:left; direction:ltr; }
-  td.mono{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink); }
-  td.member-name{ font-family:'Noto Nastaliq Urdu', serif; font-size:15px; }
-
-  .status-tag{
-    display:inline-block; padding:3px 10px; border-radius:20px;
-    font-size:11px; font-family:'IBM Plex Sans', sans-serif; font-weight:500;
-    direction:ltr;
+  label{
+    display:block;
+    font-size:13px;
+    margin-bottom:6px;
+    color:var(--muted);
   }
-  .status-tag.collected{ background:#E4EFE9; color:var(--teal-deep); }
-  .status-tag.other{ background:var(--paper-2); color:var(--ink-soft); }
-
-  button.view-btn{
-    padding:7px 14px;
-    background:var(--white);
-    color:var(--teal-deep);
-    border:1.3px solid var(--teal);
-    border-radius:7px;
-    font-size:12.5px; font-weight:500;
-    font-family:'IBM Plex Sans', sans-serif;
+  input{
+    width:100%;
+    padding:10px 12px;
+    margin-bottom:16px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:#10141a;
+    color:var(--text);
+    font-size:14px;
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  button{
+    width:100%;
+    padding:10px 12px;
+    border:none;
+    border-radius:6px;
+    background:var(--accent);
+    color:#fff;
+    font-size:14px;
+    font-weight:600;
     cursor:pointer;
-    white-space:nowrap;
-    transition:all 0.15s ease;
   }
-  button.view-btn:hover{ background:var(--teal); color:var(--white); }
-
-  .empty-state, .loading-state{
-    text-align:center; padding:50px 20px; color:var(--ink-soft);
-    font-family:'Noto Nastaliq Urdu', serif; font-size:15px;
-    background:var(--white); border:1px dashed var(--line); border-radius:10px;
+  button:hover{ opacity:0.9; }
+  .error{
+    color:var(--danger);
+    font-size:13px;
+    margin:-8px 0 16px;
+    min-height:16px;
   }
-  .loading-state .spinner{
-    width:22px; height:22px; margin:0 auto 14px;
-    border:2.5px solid var(--line);
-    border-top-color:var(--teal);
-    border-radius:50%;
-    animation:spin 0.8s linear infinite;
-  }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-
-  /* Modal */
-  .modal-backdrop{
-    position:fixed; inset:0; background:rgba(29,43,39,0.45);
-    display:none; align-items:center; justify-content:center;
-    padding:24px; z-index:50;
-  }
-  .modal-backdrop.open{ display:flex; }
-  .modal{
-    background:var(--white); border-radius:12px;
-    max-width:560px; width:100%; max-height:82vh;
-    display:flex; flex-direction:column;
-    overflow:hidden;
-    box-shadow:0 12px 40px rgba(29,43,39,0.25);
-  }
-  .modal-head{
-    padding:22px 24px 16px; border-bottom:1px solid var(--line);
-    direction:rtl;
-  }
-  .modal-head h4{
-    margin:0 0 6px; font-family:'Noto Nastaliq Urdu', serif; font-weight:600; font-size:18px;
-  }
-  .modal-head .sub{
-    font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
-    direction:ltr; text-align:left;
-  }
-  .modal-close{
-    position:absolute; top:18px; left:20px;
-    width:30px; height:30px; border-radius:50%;
-    border:1px solid var(--line); background:var(--paper-2);
-    color:var(--ink-soft); font-size:16px; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .modal-close:hover{ background:var(--line-soft); }
-  .modal-body{ padding:16px 24px 22px; overflow-y:auto; }
-  table.ledger{ width:100%; border-collapse:collapse; }
-  table.ledger th{
-    text-align:right; font-size:11px; font-weight:600; color:var(--ink-soft);
-    padding:8px 6px; border-bottom:1.5px solid var(--line);
-    font-family:'IBM Plex Sans', sans-serif;
-  }
-  table.ledger td{
-    padding:9px 6px; border-bottom:1px solid var(--line-soft); font-size:13.5px;
-    text-align:right;
-  }
-  table.ledger td.mono{ font-family:'IBM Plex Mono', monospace; direction:ltr; text-align:left; }
-  .ledger-total{
-    display:flex; justify-content:space-between; align-items:center;
-    margin-top:14px; padding-top:14px; border-top:1.5px solid var(--line);
-    direction:rtl;
-  }
-  .ledger-total .label{ font-family:'Noto Nastaliq Urdu', serif; font-size:14.5px; }
-  .ledger-total .value{ font-family:'IBM Plex Mono', monospace; font-size:16px; font-weight:600; color:var(--teal-deep); direction:ltr; }
-
-  footer{
-    text-align:center; padding:24px; color:#A79E8A; font-size:11.5px;
-    font-family:'IBM Plex Sans', sans-serif;
-  }
-
-  @media (max-width: 640px){
-    table.results thead{ display:none; }
-    table.results, table.results tbody, table.results tr, table.results td{ display:block; width:100%; }
-    table.results tr{ padding:14px; border-bottom:1px solid var(--line); }
-    table.results td{ border:none; padding:4px 0; text-align:right; }
-    table.results td::before{
-      content: attr(data-label);
-      display:block; font-size:10.5px; color:var(--ink-soft);
-      font-family:'IBM Plex Sans', sans-serif; margin-bottom:2px;
-    }
-    td.view-cell{ padding-top:10px; }
-  }
+  .dashboard{ display:none; text-align:center; }
+  .dashboard h2{ margin-bottom:8px; }
+  .dashboard p{ color:var(--muted); font-size:14px; margin-bottom:20px; }
+  .logout-btn{ background:var(--danger); }
 </style>
 </head>
 <body>
 
-<header class="masthead">
-  <div class="masthead-inner">
-    <div class="brand">
-      <div class="brand-mark">RR</div>
-      <div class="brand-text">
-        <h1>ریکوری ریکارڈ تلاش</h1>
-        <p>Recovery Record Lookup &nbsp;·&nbsp; PM-YBLS</p>
-      </div>
-    </div>
-    <div id="statusPill" class="status-pill"><span class="dot"></span><span id="statusText">شیٹ لوڈ ہو رہی ہے…</span></div>
-  </div>
-</header>
+<div class="card" id="loginCard">
+  <h1>Sign in</h1>
+  <p class="sub">Enter your username and password</p>
+  <label for="username">Username</label>
+  <input id="username" type="text" autocomplete="username">
+  <label for="password">Password</label>
+  <input id="password" type="password" autocomplete="current-password">
+  <div class="error" id="errorMsg"></div>
+  <button id="loginBtn">Sign in</button>
+</div>
 
-<main>
-  <section class="search-panel">
-    <h2>CNIC یا Sanction Number سے تلاش کریں</h2>
-    <p class="hint">ممبر کا شناختی کارڈ نمبر (CNIC) یا سینکشن نمبر درج کریں۔ ہر سینکشن صرف ایک بار نتیجے میں دکھایا جائے گا۔</p>
-    <div class="search-row">
-      <input type="text" id="query" placeholder="e.g. 38201-1088010-5  or  3402-D027-00241" autocomplete="off">
-      <button class="primary" id="searchBtn">تلاش کریں</button>
-    </div>
-  </section>
-
-  <div class="results-header">
-    <h3>نتائج</h3>
-    <div class="results-count" id="resultsCount"></div>
-  </div>
-
-  <div id="resultsArea">
-    <div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>
-  </div>
-</main>
-
-<footer>Data source: connected Google Sheet · read-only lookup</footer>
-
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal">
-    <div class="modal-head">
-      <button class="modal-close" id="modalClose">✕</button>
-      <h4 id="modalTitle">ریکارڈ کی تفصیل</h4>
-      <div class="sub" id="modalSub"></div>
-    </div>
-    <div class="modal-body">
-      <table class="ledger">
-        <thead>
-          <tr><th>Receive Date</th><th>Amount</th><th>Status</th></tr>
-        </thead>
-        <tbody id="ledgerBody"></tbody>
-      </table>
-      <div class="ledger-total">
-        <span class="label">مجموعی وصولی</span>
-        <span class="value" id="ledgerTotal"></span>
-      </div>
-    </div>
-  </div>
+<div class="card dashboard" id="dashboardCard">
+  <h2 id="welcomeText">Welcome</h2>
+  <p id="roleText"></p>
+  <button class="logout-btn" id="logoutBtn">Log out</button>
 </div>
 
 <script>
-  // ===== CONFIGURATION =====
-  // =============================================
-// CONFIG
 // =============================================
-const SHEET_ID = "1v9Y7EulDlF4xlsp_1WVsIsNeVWNrOEti";
-const SHEET_NAME = "Sheet1";
-const COLUMNS = ['Sr No','CNIC','Name','Contact','Branch Name','Branch Code','Batch'];
-
-let sheetData = [];
-let ready = false;
-let currentResults = [];
-
+// USER STORE (persisted to localStorage)
 // =============================================
-// CSV PARSE
-// =============================================
-function parseCSV(csv){
-  const lines = csv.split("\n").filter(l => l.trim());
-  const rows = [];
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i]; const cells=[]; let cell=''; let quoted=false;
-    for(let j=0;j<line.length;j++){
-      const c=line[j]; const next=line[j+1];
-      if(c==='"'){ if(quoted && next==='"'){ cell+='"'; j++; } else { quoted=!quoted; } }
-      else if(c===',' && !quoted){ cells.push(cell.trim()); cell=''; }
-      else{ cell+=c; }
-    }
-    cells.push(cell.trim());
-    rows.push(cells);
-  }
-  return rows;
-}
-
-async function fetchSheetCSV(){
-  const urls = [
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&_=${Date.now()}`,
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0&_=${Date.now()}`
+function loadUsers(){
+  const stored = localStorage.getItem('acag_users_v3');
+  if(stored) return JSON.parse(stored);
+  // Default users
+  const defaults = [
+    {username:'admin', password:'acag2026', role:'admin', blocked:false, createdAt: new Date().toISOString()},
+    {username:'user',  password:'user1122', role:'user',  blocked:false, createdAt: new Date().toISOString()}
   ];
-
-  let lastError = null;
-
-  for (const url of urls) {
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-      try {
-        const res = await fetch(url, {
-          method: "GET",
-          cache: "no-store",
-          mode: "cors",
-          signal: controller.signal
-        });
-
-        if (!res.ok) throw new Error(`Google Sheets HTTP ${res.status}`);
-
-        const text = await res.text();
-
-        // Google may return an HTML login/access page instead of CSV.
-        if (/^\s*<!doctype html/i.test(text) || /<html[\s>]/i.test(text)) {
-          throw new Error("Google Sheet returned an HTML/access page. Check sharing permissions.");
-        }
-
-        if (!text.trim()) throw new Error("Google Sheet returned empty data.");
-
-        clearTimeout(timeoutId);
-        return text;
-      } catch (err) {
-        lastError = err;
-        clearTimeout(timeoutId);
-        if (attempt < 3) {
-          await new Promise(resolve => setTimeout(resolve, 700 * attempt));
-        }
-      }
-    }
-  }
-
-  throw lastError || new Error("Unable to load Google Sheet.");
+  saveUsers(defaults);
+  return defaults;
 }
-
-async function loadSheet(){
-  statusPill.classList.remove("ok", "err");
-  statusText.textContent = "شیٹ لوڈ ہو رہی ہے…";
-  resultsArea.innerHTML = `<div class="loading-state"><div class="spinner"></div>Google Sheet سے ڈیٹا لوڈ ہو رہا ہے…</div>`;
-
-  try {
-    const csv = await fetchSheetCSV();
-    const rows = parseCSV(csv);
-
-    if (!rows.length) throw new Error("No rows found.");
-
-    // Convert header names to the exact keys used by the search/UI.
-    const headers = rows[0].map(h => String(h || "").trim().toLowerCase());
-    const indexOf = (...names) => {
-      for (const name of names) {
-        const i = headers.indexOf(name.toLowerCase());
-        if (i !== -1) return i;
-      }
-      return -1;
-    };
-
-    const iCNIC = indexOf("member_cnic", "cnic");
-    const iName = indexOf("member_name", "name");
-    const iSanction = indexOf("sanction_no", "sanction no", "sanction number");
-    const iProject = indexOf("project");
-    const iStatus = indexOf("status");
-    const iDate = indexOf("receive_date", "receive date", "date");
-    const iAmount = indexOf("amount", "fee amount");
-    const iSr = indexOf("sr no", "sr_no");
-    const iContact = indexOf("contact");
-    const iBranchName = indexOf("branch name", "branch_name");
-    const iBranchCode = indexOf("branch code", "branch_code");
-    const iBatch = indexOf("batch");
-
-    if (iCNIC === -1 || iSanction === -1) {
-      throw new Error(
-        "Required columns not found. Google Sheet must contain CNIC/member_cnic and Sanction No/sanction_no columns."
-      );
-    }
-
-    allRows = rows.slice(1)
-      .map(row => ({
-        sr_no: iSr >= 0 ? row[iSr] : "",
-        member_cnic: iCNIC >= 0 ? row[iCNIC] : "",
-        member_name: iName >= 0 ? row[iName] : "",
-        sanction_no: iSanction >= 0 ? row[iSanction] : "",
-        Project: iProject >= 0 ? row[iProject] : "",
-        Status: iStatus >= 0 ? row[iStatus] : "",
-        receive_date: iDate >= 0 ? row[iDate] : "",
-        amount: iAmount >= 0 ? row[iAmount] : "",
-        Contact: iContact >= 0 ? row[iContact] : "",
-        "Branch Name": iBranchName >= 0 ? row[iBranchName] : "",
-        "Branch Code": iBranchCode >= 0 ? row[iBranchCode] : "",
-        Batch: iBatch >= 0 ? row[iBatch] : ""
-      }))
-      .filter(r => String(r.sanction_no || "").trim());
-
-    loaded = true;
-    statusPill.classList.add("ok");
-    statusText.textContent = `شیٹ لوڈ ہو گئی — ${allRows.length.toLocaleString()} اندراجات`;
-
-    resultsArea.innerHTML = `<div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>`;
-  } catch (err) {
-    loaded = false;
-    statusPill.classList.add("err");
-    statusText.textContent = "شیٹ لوڈ نہیں ہو سکی";
-
-    resultsArea.innerHTML = `<div class="empty-state ur">
-      Google Sheet لوڈ نہیں ہو سکی۔<br>
-      <small>${escapeHtml(err.message || "Unknown error")}</small><br><br>
-      براہِ کرم Google Sheet کی Sharing کو <b>Anyone with the link → Viewer</b> کریں اور صفحہ دوبارہ کھولیں۔
-    </div>`;
-
-    console.error("Google Sheet load error:", err);
-  }
+function saveUsers(users){
+  localStorage.setItem('acag_users_v3', JSON.stringify(users));
 }
+let USERS = loadUsers();
 
-  // Compatibility functions for any existing refresh controls.
-  async function forceRefresh(){
-    await loadSheet();
+// =============================================
+// FORCE LOGOUT ON EVERY PAGE VISIT/RELOAD
+// =============================================
+(function forceLogoutOnLoad(){
+  localStorage.removeItem('acag_current_user');
+  sessionStorage.clear();
+})();
+
+// =============================================
+// LOGIN / LOGOUT LOGIC
+// =============================================
+const loginCard = document.getElementById('loginCard');
+const dashboardCard = document.getElementById('dashboardCard');
+const errorMsg = document.getElementById('errorMsg');
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  errorMsg.textContent = '';
+
+  const found = USERS.find(u => u.username === username && u.password === password);
+
+  if(!found){
+    errorMsg.textContent = 'Invalid username or password.';
+    return;
+  }
+  if(found.blocked){
+    errorMsg.textContent = 'This account is blocked.';
+    return;
   }
 
-  // Start loading after the DOM is ready.
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadSheet);
-  } else {
-    loadSheet();
-  }
+  // Session is intentionally kept in sessionStorage only (cleared on every page load/refresh)
+  sessionStorage.setItem('acag_current_user', JSON.stringify({username: found.username, role: found.role}));
+  showDashboard(found);
+});
 
-  function doSearch(){
-    const raw = queryInput.value.trim();
-    if(!raw){
-      resultsArea.innerHTML = `<div class="empty-state ur">تلاش شروع کرنے کے لیے اوپر CNIC یا Sanction Number درج کریں۔</div>`;
-      resultsCount.textContent = '';
-      return;
-    }
-    if(!loaded){
-      resultsArea.innerHTML = `<div class="loading-state"><div class="spinner"></div>شیٹ ابھی لوڈ ہو رہی ہے، براہِ کرم انتظار کریں…</div>`;
-      setTimeout(doSearch, 500);
-      return;
-    }
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('acag_current_user');
+  loginCard.style.display = 'block';
+  dashboardCard.style.display = 'none';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+});
 
-    const q = normalize(raw);
-    const matches = allRows.filter(r =>
-      normalize(r.member_cnic).includes(q) || normalize(r.sanction_no).includes(q)
-    );
-
-    // group by sanction_no, keep one representative row per sanction
-    const groups = new Map();
-    for(const r of matches){
-      if(!groups.has(r.sanction_no)){
-        groups.set(r.sanction_no, { rep: r, records: [] });
-      }
-      groups.get(r.sanction_no).records.push(r);
-    }
-
-    renderResults(groups);
-  }
-
-  function renderResults(groups){
-    const entries = Array.from(groups.entries());
-    resultsCount.textContent = `${entries.length} unique sanction${entries.length===1?'':'s'} · ${Array.from(groups.values()).reduce((a,g)=>a+g.records.length,0)} total entries`;
-
-    if(entries.length === 0){
-      resultsArea.innerHTML = `<div class="empty-state ur">اس CNIC یا Sanction Number کے خلاف کوئی ریکارڈ نہیں ملا۔</div>`;
-      return;
-    }
-
-    let html = `<table class="results">
-      <thead>
-        <tr>
-          <th class="mono">Sanction No</th>
-          <th>Member Name</th>
-          <th class="mono">CNIC</th>
-          <th>Project</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-    entries.forEach(([sanctionNo, group], idx) => {
-      const r = group.rep;
-      const statusClass = (r.Status || '').toLowerCase().includes('collect') ? 'collected' : 'other';
-      html += `
-        <tr>
-          <td class="mono" data-label="Sanction No">${escapeHtml(sanctionNo)}</td>
-          <td class="member-name" data-label="Member Name">${escapeHtml(r.member_name)}</td>
-          <td class="mono" data-label="CNIC">${escapeHtml(r.member_cnic)}</td>
-          <td data-label="Project">${escapeHtml(shortProject(r.Project))}</td>
-          <td data-label="Status"><span class="status-tag ${statusClass}">${escapeHtml(r.Status || '—')}</span></td>
-          <td class="view-cell" data-label=""><button class="view-btn" data-idx="${idx}">ریکارڈ دیکھیں</button></td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    resultsArea.innerHTML = html;
-
-    // wire up view buttons
-    resultsArea.querySelectorAll('.view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const [sanctionNo, group] = entries[parseInt(btn.dataset.idx)];
-        openModal(sanctionNo, group);
-      });
-    });
-  }
-
-  function shortProject(p){
-    if(!p) return '—';
-    const m = p.match(/\(([^)]+)\)/);
-    return m ? m[1] : p;
-  }
-
-  function escapeHtml(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-
-  // ===== Modal (shows the hidden receive_date / amount columns) =====
-  const modalBackdrop = document.getElementById('modalBackdrop');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalSub = document.getElementById('modalSub');
-  const ledgerBody = document.getElementById('ledgerBody');
-  const ledgerTotal = document.getElementById('ledgerTotal');
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  modalBackdrop.addEventListener('click', e => { if(e.target === modalBackdrop) closeModal(); });
-
-  function openModal(sanctionNo, group){
-    const rep = group.rep;
-    modalTitle.textContent = `${rep.member_name} — وصولی کی تفصیل`;
-    modalSub.textContent = `Sanction: ${sanctionNo}  ·  CNIC: ${rep.member_cnic}`;
-
-    const sorted = [...group.records].sort((a,b) => parseSheetDate(b.receive_date) - parseSheetDate(a.receive_date));
-    let total = 0;
-    ledgerBody.innerHTML = sorted.map(r => {
-      const amt = parseFloat(r.amount) || 0;
-      total += amt;
-      const statusClass = (r.Status || '').toLowerCase().includes('collect') ? 'collected' : 'other';
-      return `<tr>
-        <td class="mono">${formatDateDisplay(r.receive_date)}</td>
-        <td class="mono">${amt.toLocaleString()}</td>
-        <td><span class="status-tag ${statusClass}">${escapeHtml(r.Status || '—')}</span></td>
-      </tr>`;
-    }).join('');
-    ledgerTotal.textContent = total.toLocaleString();
-
-    modalBackdrop.classList.add('open');
-  }
-
-  function closeModal(){
-    modalBackdrop.classList.remove('open');
-  }
-
-  // ===== Events =====
-  searchBtn.addEventListener('click', doSearch);
-  queryInput.addEventListener('keydown', e => { if(e.key === 'Enter') doSearch(); });
-  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
-
+function showDashboard(user){
+  loginCard.style.display = 'none';
+  dashboardCard.style.display = 'block';
+  document.getElementById('welcomeText').textContent = 'Welcome, ' + user.username;
+  document.getElementById('roleText').textContent = 'Role: ' + user.role;
+}
 </script>
 
 </body>
