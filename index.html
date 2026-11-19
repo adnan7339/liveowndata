@@ -1672,9 +1672,34 @@ td:nth-child(2){
       <a href="https://pmybls-black.vercel.app/index.htm">PM Youth List</a>
       <a href="https://live-owndata.vercel.app/">ACAG List</a>
       <a href="https://acmc-five.vercel.app/">ACMC List</a>
-      <a href="https://liveowndata.vercel.app">
-  ACAG/ACMC/ACAG-BOP List <span style="color: red; font-weight: bold;">Update</span>
+      <a href="https://liveowndata.vercel.app" class="link-wrap">
+  ACAG/ACMC/ACAG-BOP List
+  <span class="new-badge">Update</span>
 </a>
+
+<style>
+  .link-wrap {
+    position: relative;
+    display: inline-block;
+    padding-right: 38px;
+  }
+  .new-badge {
+    position: absolute;
+    top: -8px;
+    right: 0;
+    background: red;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 8px;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+</style>
     </div>
   </nav>
 
